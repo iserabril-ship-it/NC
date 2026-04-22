@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SGI · No Conformidades · Centro Estant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════
+   DESIGN SYSTEM
+═══════════════════════════════════════════════ */
+:root {
+  --brand:      #0f3460;
+  --brand-mid:  #1a56db;
+  --brand-l:    #e8f0fe;
+  --accent:     #e63946;
+  --accent-l:   #fde8ea;
+  --green:      #2d9e6b;
+  --green-l:    #e6f5ef;
+  --amber:      #d97706;
+  --amber-l:    #fef3c7;
+  --purple:     #7c3aed;
+  --purple-l:   #f3efff;
+  --teal:       #0891b2;
+  --teal-l:     #e0f7fa;
+
+  --bg:         #f4f6fb;
+  --surface:    #ffffff;
+  --surface2:   #f8fafd;
+  --border:     #e2e8f2;
+  --border2:    #c8d4e8;
+  --text:       #0f1929;
+  --text2:      #3d4f6e;
+  --text3:      #7a8fae;
+
+  --shadow-xs:  0 1px 2px rgba(15,52,96,.06);
+  --shadow-sm:  0 2px 8px rgba(15,52,96,.08);
+  --shadow:     0 4px 16px rgba(15,52,96,.10);
+  --shadow-lg:  0 12px 40px rgba(15,52,96,.14);
+
+  --radius-sm:  6px;
+  --radius:     10px;
+  --radius-lg:  16px;
+
+  --f-display:  'Outfit', sans-serif;
+  --f-body:     'Outfit', sans-serif;
+  --f-mono:     'JetBrains Mono', monospace;
+
+  --sidebar-w:  230px;
+  --header-h:   58px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; -webkit-font-smoothing: antialiased; }
+body { font-family: var(--f-body); background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ══════════ TOPBAR ══════════ */
+.topbar {
+  height: var(--header-h); background: var(--brand);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px 0 0; flex-shrink: 0; z-index: 100;
+  box-shadow: 0 2px 12px rgba(15,52,96,.3);
+}
+.topbar-left { display: flex; align-items: center; width: var(--sidebar-w); padding: 0 20px; border-right: 1px solid rgba(255,255,255,.12); }
+.logo { font-family: var(--f-display); font-weight: 800; font-size: 17px; color: #fff; letter-spacing: -0.3px; }
+.logo span { color: #5b9cf6; }
+.topbar-center { flex: 1; padding: 0 20px; display: flex; align-items: center; gap: 12px; }
+.topbar-title { font-size: 13px; font-weight: 500; color: rgba(255,255,255,.7); }
+.conn-badge { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15); border-radius: 20px; padding: 4px 12px; font-size: 11px; color: rgba(255,255,255,.8); font-family: var(--f-mono); }
+.conn-dot { width: 7px; height: 7px; border-radius: 50%; background: #6ee7b7; }
+.conn-dot.offline { background: #fca5a5; }
+.conn-dot.loading { background: #fde68a; animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.top-date { font-family: var(--f-mono); font-size: 11px; color: rgba(255,255,255,.5); }
+.btn-sync { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); color: #fff; padding: 6px 14px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 500; cursor: pointer; transition: all .2s; font-family: var(--f-body); display: flex; align-items: center; gap: 6px; }
+.btn-sync:hover { background: rgba(255,255,255,.2); }
+
+/* ══════════ APP LAYOUT ══════════ */
+.app-body { display: flex; flex: 1; overflow: hidden; }
+
+/* ══════════ SIDEBAR ══════════ */
+.sidebar {
+  width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto;
+}
+.sidebar-section { padding: 16px 12px 8px; }
+.sidebar-label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; padding: 0 8px; margin-bottom: 4px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: var(--radius-sm);
+  cursor: pointer; transition: all .15s; color: var(--text2); font-size: 13px; font-weight: 500;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.nav-item:hover { background: var(--bg); color: var(--text); }
+.nav-item.active { background: var(--brand-l); color: var(--brand-mid); font-weight: 600; }
+.nav-icon { font-size: 16px; width: 20px; text-align: center; }
+.nav-badge { margin-left: auto; background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; font-family: var(--f-mono); }
+.nav-badge.green { background: var(--green); }
+.nav-badge.amber { background: var(--amber); }
+.sidebar-footer { margin-top: auto; padding: 12px; border-top: 1px solid var(--border); }
+.sidebar-stat { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: var(--bg); border-radius: var(--radius-sm); margin-bottom: 6px; }
+.ss-label { font-size: 11px; color: var(--text3); }
+.ss-val { font-family: var(--f-mono); font-size: 12px; font-weight: 600; color: var(--brand-mid); }
+
+/* ══════════ MAIN CONTENT ══════════ */
+.main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+.view { display: none; padding: 24px 28px; flex: 1; animation: fadeSlide .2s ease; }
+.view.active { display: block; }
+@keyframes fadeSlide { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+/* ══════════ TYPOGRAPHY ══════════ */
+.page-header { margin-bottom: 22px; }
+.page-title { font-family: var(--f-display); font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.4px; }
+.page-sub { font-size: 13px; color: var(--text3); margin-top: 3px; }
+
+/* ══════════ CARDS ══════════ */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-xs); }
+.card-hdr { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.card-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.card-sub { font-size: 11px; color: var(--text3); }
+.card-body { padding: 18px; }
+
+/* ══════════ GRID ══════════ */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+.g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+.g5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; }
+.g6 { display: grid; grid-template-columns: repeat(6,1fr); gap: 12px; }
+.mb4 { margin-bottom: 16px; }
+.mb3 { margin-bottom: 12px; }
+.mt4 { margin-top: 16px; }
+.mt3 { margin-top: 12px; }
+
+/* ══════════ KPI CARDS ══════════ */
+.kpi { position: relative; padding: 16px 18px; overflow: hidden; transition: transform .2s, box-shadow .2s; }
+.kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.kpi-stripe { position: absolute; top:0; left:0; right:0; height:3px; }
+.kpi-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .7px; }
+.kpi-value { font-family: var(--f-display); font-size: 34px; font-weight: 800; line-height: 1.1; margin: 6px 0 3px; letter-spacing: -1.5px; }
+.kpi-footer { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 5px; }
+.kpi-trend { font-size: 11px; font-weight: 600; }
+.kpi-trend.up { color: var(--accent); }
+.kpi-trend.down { color: var(--green); }
+.kpi-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 32px; opacity: .08; }
+.kpi.blue .kpi-value { color: var(--brand-mid); } .kpi.blue .kpi-stripe { background: var(--brand-mid); }
+.kpi.red .kpi-value { color: var(--accent); }   .kpi.red .kpi-stripe { background: var(--accent); }
+.kpi.green .kpi-value { color: var(--green); }  .kpi.green .kpi-stripe { background: var(--green); }
+.kpi.amber .kpi-value { color: var(--amber); }  .kpi.amber .kpi-stripe { background: var(--amber); }
+.kpi.purple .kpi-value { color: var(--purple); }.kpi.purple .kpi-stripe { background: var(--purple); }
+.kpi.teal .kpi-value { color: var(--teal); }    .kpi.teal .kpi-stripe { background: var(--teal); }
+
+/* ══════════ BADGES ══════════ */
+.badge { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.b-alto   { background: var(--accent-l);  color: var(--accent); }
+.b-medio  { background: var(--amber-l);   color: var(--amber); }
+.b-bajo   { background: var(--green-l);   color: var(--green); }
+.b-plan   { background: var(--brand-l);   color: var(--brand-mid); }
+.b-maq    { background: var(--purple-l);  color: var(--purple); }
+.b-mat    { background: #fff7ed;          color: #c2410c; }
+.b-otro   { background: var(--surface2);  color: var(--text2); }
+.b-si     { background: var(--accent-l);  color: var(--accent); }
+.b-no     { background: var(--green-l);   color: var(--green); }
+.b-pend   { background: var(--amber-l);   color: var(--amber); }
+.b-curso  { background: var(--brand-l);   color: var(--brand-mid); }
+.b-cerr   { background: var(--green-l);   color: var(--green); }
+
+/* ══════════ TABLE ══════════ */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+thead th { background: var(--surface2); border-bottom: 1px solid var(--border); padding: 9px 12px; text-align: left; font-size: 10.5px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .6px; white-space: nowrap; cursor: pointer; user-select: none; position: sticky; top: 0; }
+thead th:hover { color: var(--brand-mid); }
+.sort-asc::after { content: ' ↑'; } .sort-desc::after { content: ' ↓'; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background .12s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--brand-l); }
+tbody td { padding: 9px 12px; vertical-align: middle; }
+.td-mono { font-family: var(--f-mono); font-size: 11px; color: var(--text3); }
+.td-desc { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tbl-empty { text-align: center; padding: 60px 20px; color: var(--text3); }
+.tbl-empty .te-icon { font-size: 40px; display: block; margin-bottom: 10px; }
+
+/* ══════════ PARETO ══════════ */
+.pareto-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+.pareto-label { font-size: 12px; width: 190px; flex-shrink: 0; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pareto-track { flex: 1; background: var(--surface2); border-radius: 4px; height: 22px; overflow: hidden; }
+.pareto-fill { height: 100%; background: var(--brand-mid); border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 11px; font-weight: 600; color: #fff; min-width: 6px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+.pareto-n { font-size: 12px; font-family: var(--f-mono); color: var(--text3); width: 28px; text-align: right; }
+.pareto-pct { font-size: 11px; color: var(--text3); width: 40px; text-align: right; font-family: var(--f-mono); }
+
+/* ══════════ INSIGHT CARDS ══════════ */
+.insight { border-left: 3px solid; border-radius: 0 var(--radius) var(--radius) 0; padding: 12px 16px; margin-bottom: 10px; }
+.insight.alert { border-color: var(--accent); background: var(--accent-l); }
+.insight.warn  { border-color: var(--amber);  background: var(--amber-l); }
+.insight.good  { border-color: var(--green);  background: var(--green-l); }
+.insight.info  { border-color: var(--brand-mid); background: var(--brand-l); }
+.insight-title { font-size: 12.5px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.insight-body  { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+/* ══════════ FORMS ══════════ */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fg { display: flex; flex-direction: column; gap: 4px; }
+.fg.full { grid-column: 1 / -1; }
+.fg label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--text3); }
+.fg input, .fg select, .fg textarea {
+  padding: 8px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-family: var(--f-body); font-size: 13px; color: var(--text); background: var(--bg);
+  transition: border-color .15s, box-shadow .15s;
+}
+.fg input:focus, .fg select:focus, .fg textarea:focus {
+  outline: none; border-color: var(--brand-mid);
+  box-shadow: 0 0 0 3px rgba(26,86,219,.12); background: var(--surface);
+}
+.fg textarea { resize: vertical; min-height: 60px; }
+
+/* ══════════ BUTTONS ══════════ */
+.btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-family: var(--f-body); font-size: 13px; font-weight: 600; transition: all .15s; }
+.btn-primary { background: var(--brand-mid); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: #1546c0; box-shadow: 0 4px 14px rgba(26,86,219,.35); }
+.btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+.btn-danger  { background: var(--accent); color: #fff; }
+.btn-danger:hover  { background: #c0282f; }
+.btn-ghost   { background: var(--surface); border: 1px solid var(--border); color: var(--text2); }
+.btn-ghost:hover { border-color: var(--brand-mid); color: var(--brand-mid); }
+.btn-success { background: var(--green); color: #fff; }
+.btn-success:hover { background: #22855a; }
+.btn-full { width: 100%; justify-content: center; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+/* ══════════ DROPZONE ══════════ */
+.dropzone {
+  border: 2px dashed var(--border2); border-radius: var(--radius-lg);
+  padding: 40px 24px; text-align: center; cursor: pointer;
+  transition: all .2s; position: relative; background: var(--bg);
+}
+.dropzone:hover, .dropzone.drag-over { border-color: var(--brand-mid); background: var(--brand-l); }
+.dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.dz-icon { font-size: 44px; display: block; margin-bottom: 12px; }
+.dz-title { font-family: var(--f-display); font-size: 15px; font-weight: 700; color: var(--text); }
+.dz-sub { font-size: 12px; color: var(--text3); margin-top: 5px; font-family: var(--f-mono); }
+
+/* ══════════ FILE LIST ══════════ */
+.file-list { display: flex; flex-direction: column; gap: 7px; margin-top: 14px; }
+.file-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; display: flex; align-items: center; gap: 10px; transition: all .15s; }
+.fi-name { flex: 1; font-size: 12px; font-family: var(--f-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text2); }
+.fi-status { font-size: 10px; font-family: var(--f-mono); font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+.fsp { background: var(--surface2); color: var(--text3); }
+.fsr { background: var(--amber-l); color: var(--amber); }
+.fsd { background: var(--green-l); color: var(--green); }
+.fse { background: var(--accent-l); color: var(--accent); }
+
+/* ══════════ LOG ══════════ */
+.log-box { background: var(--text); border-radius: var(--radius-sm); padding: 12px 14px; height: 180px; overflow-y: auto; font-family: var(--f-mono); font-size: 11px; }
+.ll { line-height: 2; } .ll.ok { color: #6ee7b7; } .ll.err { color: #fca5a5; } .ll.info { color: #93c5fd; } .ll.dim { color: #4a5568; }
+
+/* ══════════ MODAL ══════════ */
+.overlay { position: fixed; inset: 0; background: rgba(15,25,41,.6); z-index: 500; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s; backdrop-filter: blur(4px); }
+.overlay.open { opacity: 1; pointer-events: all; }
+.modal { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 760px; max-height: 90vh; overflow-y: auto; padding: 28px; transform: scale(.96) translateY(10px); transition: transform .2s; }
+.overlay.open .modal { transform: scale(1) translateY(0); }
+.modal-hdr { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; }
+.modal-hdr h3 { font-family: var(--f-display); font-size: 17px; font-weight: 800; color: var(--brand-mid); }
+.modal-hdr p { font-size: 12px; color: var(--text3); margin-top: 3px; }
+.modal-close { background: none; border: none; cursor: pointer; font-size: 22px; color: var(--text3); padding: 2px; line-height: 1; }
+
+/* ══════════ CONFIGURACION ══════════ */
+.config-card { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 14px; }
+.config-card h4 { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.config-card p { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 12px; }
+.step-list { list-style: none; counter-reset: steps; }
+.step-list li { counter-increment: steps; display: flex; gap: 12px; margin-bottom: 10px; font-size: 12px; color: var(--text2); line-height: 1.5; }
+.step-list li::before { content: counter(steps); background: var(--brand-mid); color: #fff; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+.code-block { background: var(--text); color: #e2e8f0; font-family: var(--f-mono); font-size: 11px; padding: 12px 14px; border-radius: var(--radius-sm); overflow-x: auto; line-height: 1.8; margin: 8px 0; }
+
+/* ══════════ CHARTS ══════════ */
+.chart-container { position: relative; }
+canvas { max-height: 250px; }
+
+/* ══════════ FILTER BAR ══════════ */
+.filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+.filter-bar select, .filter-bar input { padding: 7px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: var(--f-body); font-size: 12px; color: var(--text2); background: var(--surface); }
+.filter-bar select:focus, .filter-bar input:focus { outline: none; border-color: var(--brand-mid); }
+.filter-count { font-size: 12px; color: var(--text3); margin-left: auto; font-family: var(--f-mono); }
+
+/* ══════════ BANNER ══════════ */
+.banner { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-radius: var(--radius-sm); font-size: 12.5px; margin-bottom: 16px; }
+.banner.info  { background: var(--brand-l); color: var(--brand-mid); border: 1px solid #b3ccf5; }
+.banner.warn  { background: var(--amber-l); color: var(--amber); border: 1px solid #fcd34d; }
+.banner.success { background: var(--green-l); color: var(--green); border: 1px solid #6ee7b7; }
+
+/* ══════════ TABS (sub) ══════════ */
+.sub-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.sub-tab { padding: 9px 18px; border: none; background: none; cursor: pointer; font-family: var(--f-body); font-size: 13px; font-weight: 500; color: var(--text3); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .15s; }
+.sub-tab:hover { color: var(--text); }
+.sub-tab.active { color: var(--brand-mid); border-bottom-color: var(--brand-mid); font-weight: 600; }
+
+/* ══════════ SPINNER ══════════ */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
+.spinner.dark { border-color: rgba(26,86,219,.2); border-top-color: var(--brand-mid); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ TOPBAR ══════════════ -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">Centro<span>Estant</span></div>
+  </div>
+  <div class="topbar-center">
+    <div class="topbar-title">Sistema de Gestión · No Conformidades</div>
+    <div class="conn-badge">
+      <div class="conn-dot loading" id="connDot"></div>
+      <span id="connText">Conectando…</span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="top-date" id="topDate"></div>
+    <button class="btn-sync" onclick="syncData()">
+      <span id="syncIcon">↻</span> Sincronizar
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════ APP BODY ══════════════ -->
+<div class="app-body">
+
+  <!-- ════ SIDEBAR ════ -->
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Principal</div>
+      <button class="nav-item active" onclick="navigate('dashboard')" data-view="dashboard">
+        <span class="nav-icon">📊</span> Dashboard
+      </button>
+      <button class="nav-item" onclick="navigate('analisis')" data-view="analisis">
+        <span class="nav-icon">🔍</span> Análisis y KPIs
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Gestión</div>
+      <button class="nav-item" onclick="navigate('informes')" data-view="informes">
+        <span class="nav-icon">📋</span> Todos los Informes
+        <span class="nav-badge amber" id="nav-total">0</span>
+      </button>
+      <button class="nav-item" onclick="navigate('cargar')" data-view="cargar">
+        <span class="nav-icon">⬆</span> Cargar Informe
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Sistema</div>
+      <button class="nav-item" onclick="navigate('config')" data-view="config">
+        <span class="nav-icon">⚙</span> Configuración
+      </button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-stat"><span class="ss-label">Total NC</span><span class="ss-val" id="sb-total">—</span></div>
+      <div class="sidebar-stat"><span class="ss-label">Impacto Alto</span><span class="ss-val" id="sb-alto" style="color:var(--accent)">—</span></div>
+      <div class="sidebar-stat"><span class="ss-label">Sin cerrar</span><span class="ss-val" id="sb-abiertas" style="color:var(--amber)">—</span></div>
+    </div>
+  </nav>
+
+  <!-- ════ MAIN CONTENT ════ -->
+  <main class="main">
+
+    <!-- ══════════════════════════════════════════
+         VIEW: DASHBOARD
+    ══════════════════════════════════════════ -->
+    <div id="view-dashboard" class="view active">
+      <div class="page-header">
+        <div class="page-title">Dashboard General</div>
+        <div class="page-sub" id="dash-sub">Cargando datos…</div>
+      </div>
+
+      <!-- KPIs Fila 1: Volumen -->
+      <div class="g6 mb4">
+        <div class="card kpi blue"><div class="kpi-stripe"></div><div class="kpi-label">Total NC</div><div class="kpi-value" id="k-total">—</div><div class="kpi-footer">Registradas</div><div class="kpi-icon">📋</div></div>
+        <div class="card kpi red"><div class="kpi-stripe"></div><div class="kpi-label">Alto Impacto</div><div class="kpi-value" id="k-alto">—</div><div class="kpi-footer">Críticas</div><div class="kpi-icon">🔴</div></div>
+        <div class="card kpi amber"><div class="kpi-stripe"></div><div class="kpi-label">Abiertas</div><div class="kpi-value" id="k-abiertas">—</div><div class="kpi-footer">Sin cerrar</div><div class="kpi-icon">🔓</div></div>
+        <div class="card kpi green"><div class="kpi-stripe"></div><div class="kpi-label">Cerradas</div><div class="kpi-value" id="k-cerradas">—</div><div class="kpi-footer">Resueltas</div><div class="kpi-icon">✅</div></div>
+        <div class="card kpi purple"><div class="kpi-stripe"></div><div class="kpi-label">Recurrentes</div><div class="kpi-value" id="k-recur">—</div><div class="kpi-footer">Mismo problema</div><div class="kpi-icon">🔁</div></div>
+        <div class="card kpi teal"><div class="kpi-stripe"></div><div class="kpi-label">Con Parada</div><div class="kpi-value" id="k-parada">—</div><div class="kpi-footer">Paran prod.</div><div class="kpi-icon">⛔</div></div>
+      </div>
+
+      <!-- KPIs Fila 2: Gestión -->
+      <div class="g4 mb4">
+        <div class="card kpi green"><div class="kpi-stripe"></div><div class="kpi-label">Tasa de Cierre</div><div class="kpi-value" id="k-cierre">—</div><div class="kpi-footer">Meta: &gt; 60%</div></div>
+        <div class="card kpi red"><div class="kpi-stripe"></div><div class="kpi-label">% Planificación</div><div class="kpi-value" id="k-planpct">—</div><div class="kpi-footer">Causa sistémica</div></div>
+        <div class="card kpi amber"><div class="kpi-stripe"></div><div class="kpi-label">% Recurrencia</div><div class="kpi-value" id="k-recurpct">—</div><div class="kpi-footer">Meta: &lt; 10%</div></div>
+        <div class="card kpi purple"><div class="kpi-stripe"></div><div class="kpi-label">Piezas Afectadas</div><div class="kpi-value" id="k-piezas">—</div><div class="kpi-footer">Unidades fuera de spec</div></div>
+      </div>
+
+      <!-- Charts Fila 1 -->
+      <div class="g3 mb4">
+        <div class="card"><div class="card-hdr"><div class="card-title">NC por Tipo</div><div class="card-sub" id="chart-tipo-sub"></div></div><div class="card-body chart-container"><canvas id="cTipo"></canvas></div></div>
+        <div class="card"><div class="card-hdr"><div class="card-title">NC por Causa Raíz (5M)</div></div><div class="card-body chart-container"><canvas id="cCausa"></canvas></div></div>
+        <div class="card"><div class="card-hdr"><div class="card-title">Evolución Mensual</div></div><div class="card-body chart-container"><canvas id="cMes"></canvas></div></div>
+      </div>
+
+      <!-- Charts Fila 2 -->
+      <div class="g2">
+        <div class="card"><div class="card-hdr"><div class="card-title">NC por Sector</div><div class="card-sub">Top sectores afectados</div></div><div class="card-body chart-container"><canvas id="cSector"></canvas></div></div>
+        <div class="card"><div class="card-hdr"><div class="card-title">Estado de NC</div><div class="card-sub">Gestión de acciones</div></div><div class="card-body chart-container"><canvas id="cEstado"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         VIEW: ANÁLISIS Y KPIs
+    ══════════════════════════════════════════ -->
+    <div id="view-analisis" class="view">
+      <div class="page-header">
+        <div class="page-title">Análisis y KPIs Detallados</div>
+        <div class="page-sub">Análisis profundo como analista de producción</div>
+      </div>
+
+      <!-- Sub-tabs -->
+      <div class="sub-tabs">
+        <button class="sub-tab active" onclick="showSubTab('st-insights')" data-st="st-insights">💡 Hallazgos</button>
+        <button class="sub-tab" onclick="showSubTab('st-pareto')" data-st="st-pareto">📊 Pareto</button>
+        <button class="sub-tab" onclick="showSubTab('st-kpitable')" data-st="st-kpitable">📈 KPIs Completos</button>
+        <button class="sub-tab" onclick="showSubTab('st-tendencia')" data-st="st-tendencia">📉 Tendencias</button>
+      </div>
+
+      <div id="st-insights" class="sub-panel">
+        <div id="insightsBox" class="mb4"></div>
+      </div>
+
+      <div id="st-pareto" class="sub-panel" style="display:none">
+        <div class="g2 mb4">
+          <div class="card"><div class="card-hdr"><div class="card-title">Pareto — Causas Raíz</div><div class="card-sub">Principio 80/20</div></div><div class="card-body" id="paretoCausas"></div></div>
+          <div class="card"><div class="card-hdr"><div class="card-title">Pareto — Sectores</div><div class="card-sub">Más afectados</div></div><div class="card-body" id="paretoSect"></div></div>
+        </div>
+        <div class="g2">
+          <div class="card"><div class="card-hdr"><div class="card-title">Pareto — Tipo de NC</div></div><div class="card-body" id="paretoTipo"></div></div>
+          <div class="card"><div class="card-hdr"><div class="card-title">Pareto — Procesos</div></div><div class="card-body" id="paretoProceso"></div></div>
+        </div>
+      </div>
+
+      <div id="st-kpitable" class="sub-panel" style="display:none">
+        <div class="g2 mb4">
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">KPIs de Volumen</div></div>
+            <div class="card-body tbl-wrap"><table><thead><tr><th>Indicador</th><th>Valor</th><th>%</th><th>Estado</th></tr></thead><tbody id="kpi-volumen"></tbody></table></div>
+          </div>
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">KPIs de Impacto</div></div>
+            <div class="card-body tbl-wrap"><table><thead><tr><th>Indicador</th><th>Valor</th><th>%</th><th>Estado</th></tr></thead><tbody id="kpi-impacto"></tbody></table></div>
+          </div>
+        </div>
+        <div class="g2 mb4">
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">KPIs de Gestión</div></div>
+            <div class="card-body tbl-wrap"><table><thead><tr><th>Indicador</th><th>Valor</th><th>%</th><th>Estado</th></tr></thead><tbody id="kpi-gestion"></tbody></table></div>
+          </div>
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">KPIs de Causa</div></div>
+            <div class="card-body tbl-wrap"><table><thead><tr><th>Indicador</th><th>Valor</th><th>%</th><th>Estado</th></tr></thead><tbody id="kpi-causa"></tbody></table></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">KPIs de Eficiencia y Recursos</div></div>
+          <div class="card-body tbl-wrap"><table><thead><tr><th>Indicador</th><th>Valor</th><th>Proporción</th><th>Estado</th></tr></thead><tbody id="kpi-eficiencia"></tbody></table></div>
+        </div>
+      </div>
+
+      <div id="st-tendencia" class="sub-panel" style="display:none">
+        <div class="card mb4"><div class="card-hdr"><div class="card-title">NC por Semana (últimas 12 semanas)</div></div><div class="card-body chart-container"><canvas id="cSemana" style="max-height:200px"></canvas></div></div>
+        <div class="g2">
+          <div class="card"><div class="card-hdr"><div class="card-title">Distribución por Impacto y Mes</div></div><div class="card-body chart-container"><canvas id="cImpactoMes"></canvas></div></div>
+          <div class="card"><div class="card-hdr"><div class="card-title">NC por Tipo — Evolución</div></div><div class="card-body chart-container"><canvas id="cTipoMes"></canvas></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         VIEW: TODOS LOS INFORMES
+    ══════════════════════════════════════════ -->
+    <div id="view-informes" class="view">
+      <div class="page-header">
+        <div class="page-title">Todos los Informes</div>
+        <div class="page-sub">Visualizá, editá o eliminá cualquier NC registrada</div>
+      </div>
+
+      <div class="filter-bar">
+        <input id="fSearch" placeholder="🔍 Buscar…" oninput="renderTable()" style="width:200px">
+        <select id="fSector" onchange="renderTable()"><option value="">Todos los sectores</option></select>
+        <select id="fTipo" onchange="renderTable()"><option value="">Todos los tipos</option></select>
+        <select id="fImpacto" onchange="renderTable()"><option value="">Todos los impactos</option></select>
+        <select id="fEstado" onchange="renderTable()"><option value="">Todos los estados</option></select>
+        <select id="fMes" onchange="renderTable()"><option value="">Todos los meses</option></select>
+        <span class="filter-count" id="filterCount">0 resultados</span>
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Exportar CSV</button>
+      </div>
+
+      <div class="card">
+        <div class="tbl-wrap" id="tableWrap"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         VIEW: CARGAR INFORME
+    ══════════════════════════════════════════ -->
+    <div id="view-cargar" class="view">
+      <div class="page-header">
+        <div class="page-title">Cargar Informe de NC</div>
+        <div class="page-sub">La IA extrae automáticamente toda la información del informe</div>
+      </div>
+
+      <div class="banner info" id="storeBanner">
+        ☁ <strong>Almacenamiento en la nube activado</strong> — Los datos se guardan en Google Sheets y son accesibles desde cualquier dispositivo.
+      </div>
+      <div class="banner warn" id="localBanner" style="display:none">
+        ⚠ <strong>Sin conexión a Google Sheets</strong> — Configurá la URL del backend en la pestaña Configuración para habilitar el almacenamiento en la nube.
+      </div>
+
+      <div class="g2" style="gap:20px">
+        <!-- Columna izquierda -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">Subir archivos</div><div class="card-sub">HTML · PDF · varios a la vez</div></div>
+            <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+              <div class="dropzone" id="dropzone">
+                <input type="file" id="fileInput" accept=".html,.htm,.pdf,.txt" multiple>
+                <span class="dz-icon">📋</span>
+                <div class="dz-title">Arrastrá o hacé clic para seleccionar</div>
+                <div class="dz-sub">Máx. 10 archivos a la vez</div>
+              </div>
+              <div class="file-list" id="fileList"></div>
+              <button class="btn btn-primary btn-full" id="btnProcess" disabled>
+                <span id="btnIcon">⚡</span>
+                <span id="btnText">Procesar con IA</span>
+              </button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-hdr"><div class="card-title">Log del sistema</div></div>
+            <div class="card-body" style="padding:12px"><div class="log-box" id="logBox"><div class="ll info">▶ Sistema listo.</div></div></div>
+          </div>
+        </div>
+
+        <!-- Columna derecha: formulario manual -->
+        <div class="card">
+          <div class="card-hdr"><div class="card-title">Carga manual</div><div class="card-sub">Completá si no tenés el archivo</div></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="fg"><label>Fecha</label><input id="fm-fecha" type="text" placeholder="DD/MM/AAAA"></div>
+              <div class="fg"><label>Mes</label><select id="fm-mes"><option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option><option>Julio</option><option>Agosto</option><option>Septiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option></select></div>
+              <div class="fg"><label>Sector</label><input id="fm-sector" type="text"></div>
+              <div class="fg"><label>Proceso</label><input id="fm-proceso" type="text"></div>
+              <div class="fg"><label>Tipo NC</label><select id="fm-tipo"><option>Error de planificación</option><option>Falla de equipo</option><option>Faltante de material</option><option>Defecto de proceso / calidad</option><option>Defecto de insumo/proveedor</option><option>Condición insegura</option><option>Falla operativa múltiple</option><option>Error de proceso</option><option>Otro</option></select></div>
+              <div class="fg"><label>Impacto</label><select id="fm-impacto"><option>Alto</option><option selected>Medio</option><option>Bajo</option></select></div>
+              <div class="fg"><label>Retrabajo</label><select id="fm-retrabajo"><option value="S">Sí</option><option value="N" selected>No</option></select></div>
+              <div class="fg"><label>Parada</label><select id="fm-parada"><option value="S">Sí</option><option value="N" selected>No</option></select></div>
+              <div class="fg"><label>Recurrente</label><select id="fm-recurrente"><option value="S">Sí</option><option value="N" selected>No</option></select></div>
+              <div class="fg"><label>Piezas afect.</label><input id="fm-piezas" type="number" value="0" min="0"></div>
+              <div class="fg"><label>Producto/Equipo</label><input id="fm-producto" type="text"></div>
+              <div class="fg"><label>Estado acción</label><select id="fm-estado"><option>Pendiente</option><option>En curso</option><option>Cerrada</option></select></div>
+              <div class="fg full"><label>Descripción</label><textarea id="fm-desc" placeholder="¿Qué ocurrió?"></textarea></div>
+              <div class="fg full"><label>Causa raíz</label><textarea id="fm-causa"></textarea></div>
+              <div class="fg full"><label>Categoría causa (5M)</label><select id="fm-ccat" style="padding:8px 11px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--f-body);font-size:13px;background:var(--bg)"><option>Planificación / Métodos</option><option>Máquinas / Métodos</option><option>Mano de obra / Métodos</option><option>Materiales / Métodos</option><option>Medio ambiente / Métodos</option><option>Máquinas / Materiales</option><option>Planificación / Logística</option><option>Máquinas / Planificación / Métodos</option></select></div>
+              <div class="fg full"><label>Acción inmediata</label><textarea id="fm-ainm"></textarea></div>
+              <div class="fg full"><label>Acción correctiva</label><textarea id="fm-acorr"></textarea></div>
+              <div class="fg full"><label>Acción preventiva</label><textarea id="fm-aprev"></textarea></div>
+              <div class="fg full"><label>Observaciones</label><input id="fm-obs" type="text"></div>
+            </div>
+            <button class="btn btn-success btn-full mt4" onclick="addManual()">+ Agregar NC al sistema</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         VIEW: CONFIGURACIÓN
+    ══════════════════════════════════════════ -->
+    <div id="view-config" class="view">
+      <div class="page-header">
+        <div class="page-title">Configuración</div>
+        <div class="page-sub">Conectá la plataforma con Google Sheets</div>
+      </div>
+
+      <div class="config-card">
+        <h4>☁ Paso 1 — Crear el Google Sheet y el Apps Script</h4>
+        <p>Seguí estos pasos una sola vez. Después la plataforma funciona sola desde cualquier computadora.</p>
+        <ol class="step-list">
+          <li>Abrí <strong>sheets.google.com</strong> y creá una hoja nueva. Podés llamarla "NC Centro Estant".</li>
+          <li>En esa hoja, hacé clic en <strong>Extensiones → Apps Script</strong>.</li>
+          <li>Borrá todo el código que aparece y pegá el código del archivo <strong>PASO1_AppScript_Backend.gs</strong> que te entregué.</li>
+          <li>Guardá el proyecto (Ctrl+S) y poné un nombre: "NC Backend".</li>
+          <li>Hacé clic en <strong>Implementar → Nueva implementación</strong>.</li>
+          <li>En "Tipo" elegí <strong>App web</strong>. En "Ejecutar como" elegí <strong>Yo</strong>. En "Quién tiene acceso" elegí <strong>Cualquier persona</strong>.</li>
+          <li>Hacé clic en <strong>Implementar</strong>. Autorizá los permisos cuando te los pida.</li>
+          <li>Copiá la <strong>URL de la implementación</strong> que aparece (empieza con https://script.google.com/macros/s/…).</li>
+        </ol>
+      </div>
+
+      <div class="config-card">
+        <h4>🔗 Paso 2 — Pegar la URL en esta plataforma</h4>
+        <p>Pegá la URL que copiaste en el campo de abajo y hacé clic en "Conectar". Eso es todo.</p>
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <input id="cfgUrl" type="text" placeholder="https://script.google.com/macros/s/…/exec" style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--f-mono);font-size:12px">
+          <button class="btn btn-primary" onclick="saveConfig()">Conectar</button>
+          <button class="btn btn-ghost" onclick="testConnection()">Probar conexión</button>
+        </div>
+        <div id="cfgStatus" style="margin-top:10px;font-size:12px;color:var(--text3)"></div>
+      </div>
+
+      <div class="config-card">
+        <h4>📥 Paso 3 (opcional) — Importar datos históricos</h4>
+        <p>Si ya tenías datos cargados en la versión anterior de la plataforma (localStorage), podés importarlos acá para que queden en Google Sheets.</p>
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <button class="btn btn-ghost" onclick="importHistorico()">📦 Importar NC históricas (N°2 a N°16)</button>
+        </div>
+      </div>
+
+      <div class="config-card">
+        <h4>ℹ Estado actual de la conexión</h4>
+        <div id="cfgInfo" style="font-size:12px;color:var(--text2);line-height:1.8">Cargando…</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════════ MODAL NC ══════════════ -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div>
+        <h3 id="modalTitle">📋 Revisar datos extraídos por IA</h3>
+        <p id="modalSub">Podés editar cualquier campo antes de confirmar</p>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-grid" id="modalGrid"></div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn btn-success" style="flex:1" id="btnConfirm">✓ Confirmar y guardar</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   CONFIGURACIÓN Y ESTADO GLOBAL
+═══════════════════════════════════════════════════════ */
+const CFG_KEY = 'ce_config_v1';
+let CONFIG = {
+  apiUrl: localStorage.getItem(CFG_KEY + '_url') || '',
+  connected: false,
+};
+
+let NC = [];           // datos en memoria
+let pendFiles = [];    // archivos en cola
+let processing = false;
+let pendingNC = null;
+let editingId = null;
+let sortField = 'id', sortDir = -1;
+
+// ── Datos históricos para importación ──
+const HISTORICO = [
+  {fecha:"06/01/2026",mes:"Enero",sector:"Mantenimiento",proceso:"Mantenimiento equipo",tipo:"Falla de equipo",descripcion:"Rotura carro portahorquillas autoelevador Mitsubishi – grietas en ojales de soporte",producto:"Autoelevador Mitsubishi",causa_raiz:"Maniobras bruscas al descargar scrap + falta mantenimiento preventivo",causa_cat:"Máquinas / Métodos",piezas_afectadas:0,retrabajo:"N",parada_produccion:"S",impacto:"Alto",recurrente:"N",accion_inmediata:"Refuerzo provisional con soldadura; retirar cargas pesadas",accion_correctiva:"Reemplazar carro portahorquillas",accion_preventiva:"Plan mantenimiento preventivo + capacitación operarios",estado:"Pendiente",observaciones:"Riesgo de accidente grave"},
+  {fecha:"19/01/2026",mes:"Enero",sector:"Pegado",proceso:"Recepción materiales",tipo:"Defecto de insumo/proveedor",descripcion:"Tableros melamina blanca con superficie porosa/rugosa – defecto de proveedor",producto:"Tableros melamina blanca",causa_raiz:"Proceso laminado deficiente en proveedor + sin inspección de ingreso",causa_cat:"Materiales / Métodos",piezas_afectadas:0,retrabajo:"S",parada_produccion:"N",impacto:"Medio",recurrente:"N",accion_inmediata:"Ubicar cara defectuosa al interior; segregar placas",accion_correctiva:"Reclamo formal a proveedor; inspección de lote completo",accion_preventiva:"Protocolo de inspección de ingreso; cláusulas de calidad con proveedor",estado:"Pendiente",observaciones:"Sin recuento exacto de piezas"},
+  {fecha:"19/01/2026",mes:"Enero",sector:"Agujereado / Armado",proceso:"Maquinado – perforación",tipo:"Error de proceso",descripcion:"Perforaciones a 283 mm en lugar de 383 mm (100 mm de diferencia) en lateral B DIS6",producto:"Mueble DIS6 lateral B",causa_raiz:"Mala lectura de plano por dos maquinistas + sin doble control",causa_cat:"Mano de obra / Métodos",piezas_afectadas:2,retrabajo:"S",parada_produccion:"N",impacto:"Medio",recurrente:"N",accion_inmediata:"Re-perforar piezas; verificar con nivel",accion_correctiva:"Reentrenar operarios; reforzar control de puesta a punto",accion_preventiva:"Protocolo doble verificación; plantillas de perforación estándar",estado:"Pendiente",observaciones:"Piezas salvadas"},
+  {fecha:"14/01/2026",mes:"Enero",sector:"Logística / Recepción",proceso:"Recepción materiales",tipo:"Defecto de insumo/proveedor",descripcion:"468 placas melamina desplazadas en camión Madergold – sunchos reventados",producto:"MF Paraiso 15mm – Madergold",causa_raiz:"Amarre deficiente del proveedor durante transporte",causa_cat:"Materiales / Métodos",piezas_afectadas:0,retrabajo:"N",parada_produccion:"S",impacto:"Alto",recurrente:"N",accion_inmediata:"Rechazar descarga; devolver camión al proveedor",accion_correctiva:"Notificación formal; reprogramar entrega",accion_preventiva:"Exigir control de estibado en origen; checklist de recepción",estado:"Pendiente",observaciones:""},
+  {fecha:"27/03/2026",mes:"Marzo",sector:"Corte / Pegado / Armado",proceso:"Planificación",tipo:"Error de planificación",descripcion:"Código 'PA' ambiguo – CME120 usó materiales distintos entre sectores",producto:"CME120",causa_raiz:"Codificación ambigua + sin verificación cruzada entre sectores",causa_cat:"Planificación / Métodos",piezas_afectadas:0,retrabajo:"S",parada_produccion:"N",impacto:"Medio",recurrente:"N",accion_inmediata:"Aclarar material correcto a todos los sectores",accion_correctiva:"Actualizar objetivo diario con especificación completa",accion_preventiva:"Nomenclatura estándar; checklist validación",estado:"Pendiente",observaciones:"NC 100% planificación"},
+  {fecha:"Abril 2026",mes:"Abril",sector:"Corte",proceso:"Planificación / Corte",tipo:"Error de planificación",descripcion:"Cantidades a cortar BH132 no coinciden con reales – G1 cortó 35/36 antes de detectar",producto:"BH132",causa_raiz:"Carga incorrecta de datos + sin verificación previa al inicio",causa_cat:"Planificación / Métodos",piezas_afectadas:0,retrabajo:"S",parada_produccion:"N",impacto:"Medio",recurrente:"S",accion_inmediata:"Corrección manual en hoja de ruta",accion_correctiva:"Control cruzado planif-producción antes de iniciar",accion_preventiva:"Verificación obligatoria de cantidades",estado:"Pendiente",observaciones:"1.ª de 3 reiteraciones"},
+  {fecha:"Abril 2026",mes:"Abril",sector:"Corte",proceso:"Planificación / Corte",tipo:"Error de planificación",descripcion:"Cantidades a cortar BH132 no coinciden con reales (2.ª reiteración)",producto:"BH132",causa_raiz:"Carga incorrecta de datos + sin verificación previa al inicio",causa_cat:"Planificación / Métodos",piezas_afectadas:0,retrabajo:"S",parada_produccion:"N",impacto:"Medio",recurrente:"S",accion_inmediata:"Corrección manual en hoja de ruta",accion_correctiva:"Implementar control cruzado",accion_preventiva:"Verificación obligatoria",estado:"Pendiente",observaciones:"2.ª reiteración"},
+  {fecha:"Abril 2026",mes:"Abril",sector:"Corte",proceso:"Planificación / Corte",tipo:"Error de planificación",descripcion:"Cantidades a cortar BH132 no coinciden con reales (3.ª reiteración)",producto:"BH132",causa_raiz:"Carga incorrecta de datos + sin verificación previa al inicio",causa_cat:"Planificación / Métodos",piezas_afectadas:0,retrabajo:"S",parada_produccion:"N",impacto:"Medio",recurrente:"S",accion_inmediata:"Corrección manual",accion_correctiva:"Control cruzado",accion_preventiva:"Verificación obligatoria",estado:"Pendiente",observaciones:"3.ª reiteración – patrón sistémico"},
+  {fecha:"Abril 2026",mes:"Abril",sector:"Depósito / Logística",proceso:"Almacenamiento",tipo:"Condición insegura",descripcion:"Base de placas deformada con inclinación visible; film roto; desnivel en piso",producto:"Placas en almacén",causa_raiz:"Base en mal estado + sin control de estabilidad + piso deteriorado",causa_cat:"Medio ambiente / Métodos",piezas_afectadas:0,retrabajo:"N",parada_produccion:"N",impacto:"Alto",recurrente:"N",accion_inmediata:"Rearmar/reemplazar base; reponer film",accion_correctiva:"Corregir desnivel de piso; definir estándares",accion_preventiva:"Controles de estabilidad previos al almacenamiento",estado:"Pendiente",observaciones:"Riesgo ergonómico y accidente"},
+  {fecha:"Abril 2026",mes:"Abril",sector:"Producción – Etiquetado",proceso:"Etiquetado automático",tipo:"Falla de equipo",descripcion:"Etiquetas duplicadas, desalineadas o sin adherencia – intervención servicio técnico",producto:"Máquina etiquetado automático",causa_raiz:"Suciedad placa avance + mala ubicación rollo + ribbon baja calidad",causa_cat:"Máquinas / Materiales",piezas_afectadas:0,retrabajo:"S",parada_produccion:"N",impacto:"Medio",recurrente:"N",accion_inmediata:"Intervención servicio técnico; ajuste de máquina",accion_correctiva:"Limpieza con solvente; reubicación correcta del rollo",accion_preventiva:"Mantenimiento preventivo rodillos cada 2 días",estado:"Pendiente",observaciones:"Resuelto por técnico externo"},
+  {fecha:"Abril 2026",mes:"Abril",sector:"Producción / Logística",proceso:"Abastecimiento de materiales",tipo:"Faltante de material",descripcion:"Faltante de 11 planchas de telgopor para OP MLF 31636",producto:"Telgopor – OP MLF 31636",causa_raiz:"Falla en planificación de materiales + sin control de stock en tiempo real",causa_cat:"Planificación / Logística",piezas_afectadas:0,retrabajo:"N",parada_produccion:"S",impacto:"Medio",recurrente:"S",accion_inmediata:"Confirmar ingreso del material en el día",accion_correctiva:"Verificar disponibilidad antes de iniciar cada orden",accion_preventiva:"Stock de seguridad; alertas de faltantes críticos",estado:"Pendiente",observaciones:"Material esperado ese día"},
+  {fecha:"Abril 2026",mes:"Abril",sector:"Planificación",proceso:"Objetivos diarios",tipo:"Error de planificación",descripcion:"Objetivo indicaba 1068 uds vs. suma real 478; DIS4 cargado con 1 ud en lugar de 41",producto:"DIS4 / Planilla diaria",causa_raiz:"Error carga manual + sin validación de totales",causa_cat:"Planificación / Métodos",piezas_afectadas:0,retrabajo:"N",parada_produccion:"N",impacto:"Medio",recurrente:"N",accion_inmediata:"Corregir errores en carga de datos",accion_correctiva:"Validar suma de ítems vs. total antes de publicar",accion_preventiva:"Control cruzado previo; estandarizar carga",estado:"Pendiente",observaciones:""},
+  {fecha:"Abril 2026",mes:"Abril",sector:"Planificación / Corte",proceso:"Hoja de ruta",tipo:"Error de planificación",descripcion:"Hoja de ruta indica 548×115 mm; plano correcto indica 548×95 mm (diferencia 20 mm)",producto:"B8018",causa_raiz:"Error carga manual en hoja de ruta + sin validación contra plano",causa_cat:"Planificación / Métodos",piezas_afectadas:0,retrabajo:"S",parada_produccion:"N",impacto:"Medio",recurrente:"N",accion_inmediata:"Corrección inmediata de hoja de ruta según plano",accion_correctiva:"Validación obligatoria hoja de ruta vs. plano",accion_preventiva:"Control cruzado planificación–corte",estado:"Pendiente",observaciones:""},
+  {fecha:"Abril 2026",mes:"Abril",sector:"Corte / Producción",proceso:"Seccionado – corte de piezas",tipo:"Defecto de proceso / calidad",descripcion:"92 piezas TC100BL cortadas a 285 mm en lugar de 289 mm (desvío 4 mm)",producto:"TC100BL",causa_raiz:"Configuración incorrecta de máquina + sin control dimensional en primeras piezas",causa_cat:"Máquinas / Métodos",piezas_afectadas:92,retrabajo:"S",parada_produccion:"N",impacto:"Alto",recurrente:"N",accion_inmediata:"Segregar lote 92 piezas; evaluar recupero o descarte",accion_correctiva:"Revisar y corregir configuración de corte",accion_preventiva:"Control dimensional obligatorio en primeras piezas",estado:"Pendiente",observaciones:"Falta first-off check"},
+  {fecha:"Abril 2026",mes:"Abril",sector:"Producción / Planta",proceso:"Corte, Perforado, Transferencia",tipo:"Falla operativa múltiple",descripcion:"KDT868 falla + faltante telgopor + parada G3 20:55-21:20 + falla pulsadores + mecha",producto:"KDT868 / G3 / Telgopor",causa_raiz:"Falta mantenimiento preventivo + deficiencias abastecimiento + sin protocolos",causa_cat:"Máquinas / Planificación / Métodos",piezas_afectadas:0,retrabajo:"N",parada_produccion:"S",impacto:"Alto",recurrente:"S",accion_inmediata:"Reponer mecha desde depósito; comunicar fallas",accion_correctiva:"Plan mantenimiento preventivo; stock mínimo repuestos",accion_preventiva:"Protocolos respuesta ante fallas; coordinación sectores",estado:"Pendiente",observaciones:"5 eventos simultáneos – NC sistémica"},
+];
+
+/* ═══════════════════════════════════════════════════════
+   API GOOGLE SHEETS
+═══════════════════════════════════════════════════════ */
+// ── API con CORS fix para archivo HTML local ──
+// Google Apps Script requiere redirect following y no permite
+// el header Content-Type en cross-origin, usamos text/plain
+
+async function apiGet(action) {
+  if (!CONFIG.apiUrl) throw new Error('Sin URL configurada');
+  // Para GET usamos no-cors no sirve (no podemos leer la respuesta)
+  // Usamos un workaround con script tag / redirect
+  const url = CONFIG.apiUrl + '?action=' + action + '&t=' + Date.now();
+  const r = await fetch(url, {
+    method: 'GET',
+    redirect: 'follow',
+  });
+  // Apps Script devuelve redirect, seguimos hasta el texto final
+  const text = await r.text();
+  try {
+    const j = JSON.parse(text);
+    if (j.status === 'error') throw new Error(j.data?.error || 'Error API');
+    return j.data;
+  } catch(parseErr) {
+    throw new Error('Respuesta inválida del servidor. Verificá que el Apps Script esté publicado correctamente.');
+  }
+}
+
+async function apiPost(body) {
+  if (!CONFIG.apiUrl) throw new Error('Sin URL configurada');
+  // Para POST: Google Apps Script acepta application/x-www-form-urlencoded
+  // o text/plain (no application/json en cross-origin)
+  const r = await fetch(CONFIG.apiUrl, {
+    method: 'POST',
+    redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(body),
+  });
+  const text = await r.text();
+  try {
+    const j = JSON.parse(text);
+    if (j.status === 'error') throw new Error(j.data?.error || 'Error API');
+    return j.data;
+  } catch(parseErr) {
+    throw new Error('Respuesta inválida. Verificá que el Apps Script esté publicado y autorizado.');
+  }
+}
+
+async function syncData() {
+  if (!CONFIG.apiUrl) {
+    setConn('offline', 'Sin configurar');
+    return;
+  }
+  setConn('loading', 'Sincronizando…');
+  document.getElementById('syncIcon').textContent = '↻';
+  try {
+    const data = await apiGet('getAll');
+    NC = Array.isArray(data) ? data.map(cleanRecord) : [];
+    setConn('online', `${NC.length} NC · ${new Date().toLocaleTimeString('es-AR')}`);
+    refreshAll();
+    log(`✓ ${NC.length} registros sincronizados desde Google Sheets`, 'ok');
+  } catch(e) {
+    setConn('offline', 'Error de conexión');
+    log(`✗ Error al sincronizar: ${e.message}`, 'err');
+  }
+  document.getElementById('syncIcon').textContent = '↻';
+}
+
+function cleanRecord(r) {
+  return {
+    id: parseInt(r.id) || 0,
+    fecha: r.fecha || '', mes: r.mes || '', año: r.año || '',
+    semana: r.semana || '', sector: r.sector || '', proceso: r.proceso || '',
+    tipo: r.tipo || '', descripcion: r.descripcion || '',
+    producto: r.producto || '', causa_raiz: r.causa_raiz || '',
+    causa_cat: r.causa_cat || '', impacto: r.impacto || '',
+    retrabajo: r.retrabajo || 'N', parada_produccion: r.parada_produccion || 'N',
+    recurrente: r.recurrente || 'N',
+    piezas_afectadas: parseInt(r.piezas_afectadas) || 0,
+    accion_inmediata: r.accion_inmediata || '',
+    accion_correctiva: r.accion_correctiva || '',
+    accion_preventiva: r.accion_preventiva || '',
+    estado: r.estado || 'Pendiente',
+    observaciones: r.observaciones || '',
+    fecha_carga: r.fecha_carga || '',
+    nombre_archivo: r.nombre_archivo || '',
+  };
+}
+
+async function addNC(data) {
+  try {
+    const result = await apiPost({ action: 'insert', data });
+    log(`✓ NC guardada en Google Sheets (ID: ${result.id})`, 'ok');
+    await syncData();
+    return result;
+  } catch(e) {
+    log(`✗ Error al guardar: ${e.message}`, 'err');
+    throw e;
+  }
+}
+
+async function updateNC(id, data) {
+  try {
+    await apiPost({ action: 'update', id, data });
+    log(`✓ NC #${id} actualizada`, 'ok');
+    await syncData();
+  } catch(e) {
+    log(`✗ Error al actualizar: ${e.message}`, 'err');
+    throw e;
+  }
+}
+
+async function deleteNC(id) {
+  if (!confirm(`¿Eliminar NC #${id}? Esta acción no se puede deshacer.`)) return;
+  try {
+    await apiPost({ action: 'delete', id });
+    log(`✓ NC #${id} eliminada`, 'ok');
+    await syncData();
+  } catch(e) {
+    log(`✗ Error al eliminar: ${e.message}`, 'err');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════
+   NAVEGACIÓN
+═══════════════════════════════════════════════════════ */
+function navigate(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById(`view-${view}`)?.classList.add('active');
+  document.querySelector(`[data-view="${view}"]`)?.classList.add('active');
+  refreshAll();
+}
+
+function showSubTab(id) {
+  document.querySelectorAll('.sub-panel').forEach(p => p.style.display = 'none');
+  document.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).style.display = 'block';
+  document.querySelector(`[data-st="${id}"]`).classList.add('active');
+  refreshAnalisis();
+}
+
+/* ═══════════════════════════════════════════════════════
+   CHARTS
+═══════════════════════════════════════════════════════ */
+Chart.defaults.font.family = "'Outfit', sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = '#7a8fae';
+Chart.defaults.plugins.legend.labels.padding = 16;
+Chart.defaults.plugins.legend.labels.boxWidth = 11;
+
+const PAL = ['#1a56db','#e63946','#2d9e6b','#d97706','#7c3aed','#0891b2','#c2410c','#15803d','#9333ea','#b91c1c','#0369a1'];
+
+let CH = {};
+function mkChart(id, type, data, opts = {}) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  if (CH[id]) CH[id].destroy();
+  CH[id] = new Chart(ctx, { type, data, options: { responsive: true, ...opts } });
+}
+
+const scaleOpts = {
+  x: { grid: { color: '#f0f4f8' }, ticks: { color: '#7a8fae' } },
+  y: { grid: { color: '#f0f4f8' }, ticks: { color: '#7a8fae', stepSize: 1 } }
+};
+
+function cntBy(arr, f) {
+  const m = {};
+  arr.forEach(x => { const v = (x[f] || 'Sin datos').toString().trim(); m[v] = (m[v] || 0) + 1; });
+  return m;
+}
+function srtE(obj) { return Object.entries(obj).sort((a, b) => b[1] - a[1]); }
+
+function initCharts() {
+  const n = NC;
+  const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  // Tipo
+  const tipos = srtE(cntBy(n, 'tipo'));
+  mkChart('cTipo', 'doughnut', {
+    labels: tipos.map(x => x[0]),
+    datasets: [{ data: tipos.map(x => x[1]), backgroundColor: PAL, borderWidth: 3, borderColor: '#fff', hoverOffset: 6 }]
+  }, { plugins: { legend: { position: 'bottom' } }, cutout: '58%' });
+  document.getElementById('chart-tipo-sub').textContent = `${tipos.length} tipos · ${n.length} total`;
+
+  // Causa raíz
+  const causas = srtE(cntBy(n, 'causa_cat'));
+  mkChart('cCausa', 'bar', {
+    labels: causas.map(x => x[0].split('/')[0].trim()),
+    datasets: [{ data: causas.map(x => x[1]), backgroundColor: PAL, borderRadius: 6, borderWidth: 0 }]
+  }, { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: scaleOpts.x, y: { ...scaleOpts.y, grid: { display: false } } } });
+
+  // Evolución mensual
+  const mC = MESES.map(m => n.filter(x => x.mes === m).length);
+  mkChart('cMes', 'line', {
+    labels: MESES.map(m => m.slice(0, 3)),
+    datasets: [{
+      label: 'NC', data: mC,
+      borderColor: '#1a56db', backgroundColor: 'rgba(26,86,219,.08)',
+      tension: .4, fill: true, pointRadius: 4, pointBackgroundColor: '#1a56db', borderWidth: 2
+    }]
+  }, { plugins: { legend: { display: false } }, scales: scaleOpts });
+
+  // Sector
+  const sect = srtE(cntBy(n, 'sector')).slice(0, 8);
+  mkChart('cSector', 'bar', {
+    labels: sect.map(x => x[0].length > 20 ? x[0].slice(0, 20) + '…' : x[0]),
+    datasets: [{ data: sect.map(x => x[1]), backgroundColor: PAL, borderRadius: 6, borderWidth: 0 }]
+  }, { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: scaleOpts.x, y: { ...scaleOpts.y, grid: { display: false } } } });
+
+  // Estado
+  const estados = cntBy(n, 'estado');
+  mkChart('cEstado', 'doughnut', {
+    labels: Object.keys(estados),
+    datasets: [{ data: Object.values(estados), backgroundColor: ['#fef3c7', '#dbeafe', '#d1fae5'], borderColor: ['#d97706','#1a56db','#2d9e6b'], borderWidth: 2, hoverOffset: 6 }]
+  }, { plugins: { legend: { position: 'bottom' } }, cutout: '58%' });
+
+  // Tendencia: semana
+  const semMap = {};
+  n.forEach(x => { if (x.semana) semMap[x.semana] = (semMap[x.semana] || 0) + 1; });
+  const semanas = Object.entries(semMap).sort((a,b) => a[0].localeCompare(b[0])).slice(-12);
+  mkChart('cSemana', 'bar', {
+    labels: semanas.map(x => x[0]),
+    datasets: [{ label: 'NC', data: semanas.map(x => x[1]), backgroundColor: '#1a56db', borderRadius: 5, borderWidth: 0 }]
+  }, { plugins: { legend: { display: false } }, scales: scaleOpts });
+
+  // Impacto por mes (stacked)
+  mkChart('cImpactoMes', 'bar', {
+    labels: MESES.map(m => m.slice(0,3)),
+    datasets: [
+      { label: 'Alto',  data: MESES.map(m => n.filter(x=>x.mes===m&&x.impacto==='Alto').length),  backgroundColor: '#e63946', borderRadius: 4 },
+      { label: 'Medio', data: MESES.map(m => n.filter(x=>x.mes===m&&x.impacto==='Medio').length), backgroundColor: '#d97706', borderRadius: 4 },
+      { label: 'Bajo',  data: MESES.map(m => n.filter(x=>x.mes===m&&x.impacto==='Bajo').length),  backgroundColor: '#2d9e6b', borderRadius: 4 },
+    ]
+  }, { plugins: { legend: { position: 'bottom' } }, scales: { x: { ...scaleOpts.x, stacked: true }, y: { ...scaleOpts.y, stacked: true } } });
+
+  // Tipo por mes (stacked)
+  const tiposU = [...new Set(n.map(x=>x.tipo))].slice(0,5);
+  mkChart('cTipoMes', 'bar', {
+    labels: MESES.map(m=>m.slice(0,3)),
+    datasets: tiposU.map((t,i) => ({
+      label: t.length>22?t.slice(0,22)+'…':t,
+      data: MESES.map(m=>n.filter(x=>x.mes===m&&x.tipo===t).length),
+      backgroundColor: PAL[i], borderRadius: 4
+    }))
+  }, { plugins: { legend: { position: 'bottom' } }, scales: { x: { ...scaleOpts.x, stacked: true }, y: { ...scaleOpts.y, stacked: true } } });
+}
+
+/* ═══════════════════════════════════════════════════════
+   KPIs
+═══════════════════════════════════════════════════════ */
+function pct(a, b) { return b ? Math.round(a / b * 100) + '%' : '0%'; }
+function semaforo(val, bueno, malo) {
+  if (typeof val === 'string') val = parseFloat(val);
+  if (val <= bueno) return '🟢';
+  if (val >= malo)  return '🔴';
+  return '🟡';
+}
+
+function updateKPIs() {
+  const n = NC, t = n.length;
+  if (!t) { ['k-total','k-alto','k-abiertas','k-cerradas','k-recur','k-parada','k-cierre','k-planpct','k-recurpct','k-piezas'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = '0'; }); return; }
+
+  const alto    = n.filter(x=>x.impacto==='Alto').length;
+  const abiertas= n.filter(x=>x.estado==='Pendiente'||x.estado==='En curso').length;
+  const cerradas= n.filter(x=>x.estado==='Cerrada').length;
+  const recur   = n.filter(x=>x.recurrente==='S').length;
+  const parada  = n.filter(x=>x.parada_produccion==='S').length;
+  const plan    = n.filter(x=>x.tipo==='Error de planificación').length;
+  const retrab  = n.filter(x=>x.retrabajo==='S').length;
+  const piezas  = n.reduce((a,x)=>a+(parseInt(x.piezas_afectadas)||0),0);
+
+  const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+  set('k-total',   t);      set('k-alto',    alto);
+  set('k-abiertas',abiertas);set('k-cerradas',cerradas);
+  set('k-recur',   recur);  set('k-parada',  parada);
+  set('k-cierre',  pct(cerradas,t));
+  set('k-planpct', pct(plan,t));
+  set('k-recurpct',pct(recur,t));
+  set('k-piezas',  piezas);
+
+  // Sidebar
+  set('sb-total',  t);
+  set('sb-alto',   alto);
+  set('sb-abiertas',abiertas);
+  document.getElementById('nav-total').textContent = t;
+
+  // Sub-header dashboard
+  const now = new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('dash-sub').textContent = `Actualizado: ${now} · ${t} NC registradas`;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ANÁLISIS
+═══════════════════════════════════════════════════════ */
+function refreshAnalisis() {
+  const n = NC, t = n.length;
+  if (!t) return;
+
+  const alto    = n.filter(x=>x.impacto==='Alto').length;
+  const recur   = n.filter(x=>x.recurrente==='S').length;
+  const cerradas= n.filter(x=>x.estado==='Cerrada').length;
+  const plan    = n.filter(x=>x.tipo==='Error de planificación').length;
+  const piezas  = n.reduce((a,x)=>a+(parseInt(x.piezas_afectadas)||0),0);
+  const parada  = n.filter(x=>x.parada_produccion==='S').length;
+  const retrab  = n.filter(x=>x.retrabajo==='S').length;
+
+  // ── INSIGHTS ──
+  const ins = [];
+  if (plan/t > .3) ins.push({cls:'alert', title:`⚠ Planificación como causa dominante: ${Math.round(plan/t*100)}% de las NC`, body:`El proceso de planificación concentra la mayor cantidad de NC. Recomendación: implementar checklist de validación obligatorio previo a cada orden de producción. Esto solo podría eliminar aproximadamente el ${Math.round(plan/t*100)}% de los desvíos actuales.`});
+  if (recur/t > .1) ins.push({cls:'warn', title:`🔁 Alta tasa de recurrencia: ${Math.round(recur/t*100)}%`, body:'Las acciones correctivas no están atacando la causa raíz o no se están implementando en tiempo y forma. Revisar las NC recurrentes y escalar a acciones estructurales.'});
+  if (alto/t > .25) ins.push({cls:'alert', title:`🔴 ${Math.round(alto/t*100)}% de NC con impacto Alto`, body:'Proporción crítica de NC de alto impacto. Priorizar el cierre de estas NC antes de que generen nuevas paradas o accidentes en planta.'});
+  if (cerradas/t < .4) ins.push({cls:'warn', title:`📌 Tasa de cierre baja: ${Math.round(cerradas/t*100)}%`, body:'La mayoría de las NC están pendientes o en curso. Esto indica que las acciones correctivas no se están completando. Establecer fechas límite y responsables para cada acción.'});
+  if (parada > 0) ins.push({cls:'alert', title:`⛔ ${parada} NC generaron paradas de producción (${Math.round(parada/t*100)}%)`, body:'Cada NC con parada es pérdida directa de capacidad productiva. Implementar protocolos de respuesta rápida para los tipos de NC que más frecuentemente generan paradas.'});
+  if (piezas > 0) ins.push({cls:'warn', title:`📦 ${piezas} piezas acumuladas fuera de especificación`, body:'Verificar si el material fue recuperado (retrabajo) o descartado (scrap). Cada pieza fuera de especificación es pérdida directa de material y tiempo.'});
+  if (!ins.length) ins.push({cls:'good', title:'✓ Sin hallazgos críticos en este momento', body:'Los indicadores están dentro de rangos aceptables. Mantener el monitoreo semanal.'});
+
+  document.getElementById('insightsBox').innerHTML = ins.map(i =>
+    `<div class="insight ${i.cls}"><div class="insight-title">${i.title}</div><div class="insight-body">${i.body}</div></div>`
+  ).join('');
+
+  // ── PARETOS ──
+  function buildPareto(containerId, data, color) {
+    const total = data.reduce((a,x)=>a+x[1],0);
+    const max = data[0]?.[1] || 1;
+    document.getElementById(containerId).innerHTML = data.map(([l, c]) => `
+      <div class="pareto-row">
+        <div class="pareto-label" title="${l}">${l.length>24?l.slice(0,24)+'…':l}</div>
+        <div class="pareto-track"><div class="pareto-fill" style="width:${Math.round(c/max*100)}%;background:${color||'var(--brand-mid)'}">${c>1?c:''}</div></div>
+        <div class="pareto-n">${c}</div>
+        <div class="pareto-pct">${Math.round(c/total*100)}%</div>
+      </div>`).join('');
+  }
+
+  buildPareto('paretoCausas',  srtE(cntBy(n,'causa_cat')));
+  buildPareto('paretoSect',    srtE(cntBy(n,'sector')).slice(0,8), '#e63946');
+  buildPareto('paretoTipo',    srtE(cntBy(n,'tipo')));
+  buildPareto('paretoProceso', srtE(cntBy(n,'proceso')).slice(0,8), '#7c3aed');
+
+  // ── KPI TABLES ──
+  function kpiRow(ind, val, ref, est) {
+    return `<tr><td>${ind}</td><td><strong>${val}</strong></td><td style="font-family:var(--f-mono);font-size:11px;color:var(--text3)">${ref}</td><td>${est}</td></tr>`;
+  }
+
+  // Volumen
+  document.getElementById('kpi-volumen').innerHTML = [
+    kpiRow('Total NC registradas', t, '—', '—'),
+    kpiRow('NC en el mes actual', n.filter(x=>x.mes===new Date().toLocaleString('es-AR',{month:'long',locale:'es'})).length, '—', '—'),
+    kpiRow('NC por semana (promedio)', (t / Math.max(Object.keys(cntBy(n,'semana')).length,1)).toFixed(1), '—', '—'),
+    kpiRow('NC impacto Alto', alto, pct(alto,t), semaforo(alto/t*100, 20, 35)+ (alto/t>.35?' Alta proporción':' OK')),
+    kpiRow('NC impacto Medio', n.filter(x=>x.impacto==='Medio').length, pct(n.filter(x=>x.impacto==='Medio').length,t), '—'),
+    kpiRow('NC impacto Bajo', n.filter(x=>x.impacto==='Bajo').length, pct(n.filter(x=>x.impacto==='Bajo').length,t), '—'),
+    kpiRow('NC con parada de producción', parada, pct(parada,t), semaforo(parada/t*100, 15, 30)+(parada/t>.3?' Revisar':' OK')),
+    kpiRow('NC con retrabajo', retrab, pct(retrab,t), '—'),
+  ].join('');
+
+  // Impacto
+  document.getElementById('kpi-impacto').innerHTML = [
+    kpiRow('Piezas afectadas (total)', piezas, 'uds', piezas>0?'🔴 Revisar recupero':'🟢 Sin afectados'),
+    kpiRow('NC con retrabajo', retrab, pct(retrab,t), '—'),
+    kpiRow('NC con parada', parada, pct(parada,t), semaforo(parada, 0, 5)+(parada>5?' Alto':' OK')),
+    kpiRow('Sectores afectados', Object.keys(cntBy(n,'sector')).length, 'sectores', '—'),
+    kpiRow('Procesos afectados', Object.keys(cntBy(n,'proceso')).length, 'procesos', '—'),
+    kpiRow('Productos/Equipos afectados', Object.keys(cntBy(n,'producto')).length, 'items', '—'),
+  ].join('');
+
+  // Gestión
+  document.getElementById('kpi-gestion').innerHTML = [
+    kpiRow('NC cerradas', cerradas, pct(cerradas,t), semaforo(cerradas/t*100, 60, 30)+(cerradas/t>.6?' Bien':''+cerradas/t>.3?'':' Bajo')),
+    kpiRow('NC abiertas (Pendiente + En curso)', n.filter(x=>x.estado!=='Cerrada').length, pct(n.filter(x=>x.estado!=='Cerrada').length,t), '—'),
+    kpiRow('NC en curso', n.filter(x=>x.estado==='En curso').length, pct(n.filter(x=>x.estado==='En curso').length,t), '—'),
+    kpiRow('NC pendientes', n.filter(x=>x.estado==='Pendiente').length, pct(n.filter(x=>x.estado==='Pendiente').length,t), n.filter(x=>x.estado==='Pendiente').length/t>.5?'🔴 Alta proporción':'🟡 Vigilar'),
+    kpiRow('Tasa de cierre', pct(cerradas,t), 'meta: >60%', semaforo(cerradas/t*100, 60, 40, true)+(cerradas/t>.6?' ✓':' Mejorar')),
+  ].join('');
+
+  // Causa
+  const topCausas = srtE(cntBy(n,'causa_cat')).slice(0,3).map(x=>x[0].split('/')[0].trim()).join(' · ');
+  document.getElementById('kpi-causa').innerHTML = [
+    kpiRow('NC por error de planificación', plan, pct(plan,t), semaforo(plan/t*100, 20, 35)+(plan/t>.35?' 🔴 Foco principal':' OK')),
+    kpiRow('NC recurrentes', recur, pct(recur,t), semaforo(recur/t*100, 10, 20)+(recur/t>.2?' 🔴 Alta recurrencia':' OK')),
+    kpiRow('NC por falla de equipo', n.filter(x=>x.tipo==='Falla de equipo').length, pct(n.filter(x=>x.tipo==='Falla de equipo').length,t), '—'),
+    kpiRow('NC por faltante de material', n.filter(x=>x.tipo==='Faltante de material').length, pct(n.filter(x=>x.tipo==='Faltante de material').length,t), '—'),
+    kpiRow('Top 3 causas raíz', topCausas, '—', '—'),
+    kpiRow('Categorías 5M involucradas', Object.keys(cntBy(n,'causa_cat')).length, 'de 5', '—'),
+  ].join('');
+
+  // Eficiencia y recursos
+  document.getElementById('kpi-eficiencia').innerHTML = [
+    kpiRow('NC que generaron parada', parada, pct(parada,t), '—'),
+    kpiRow('NC en sector Corte', n.filter(x=>x.sector?.includes('Corte')).length, pct(n.filter(x=>x.sector?.includes('Corte')).length,t), '—'),
+    kpiRow('NC en sector Logística', n.filter(x=>x.sector?.toLowerCase().includes('logística')||x.sector?.toLowerCase().includes('logistica')).length, pct(n.filter(x=>x.sector?.toLowerCase().includes('logística')||x.sector?.toLowerCase().includes('logistica')).length,t), '—'),
+    kpiRow('NC en sector Planificación', n.filter(x=>x.sector?.toLowerCase().includes('planif')).length, pct(n.filter(x=>x.sector?.toLowerCase().includes('planif')).length,t), '—'),
+    kpiRow('NC en sector Producción', n.filter(x=>x.sector?.toLowerCase().includes('producc')).length, pct(n.filter(x=>x.sector?.toLowerCase().includes('producc')).length,t), '—'),
+    kpiRow('Meses con actividad registrada', Object.keys(cntBy(n,'mes')).filter(m=>m!=='Sin datos').length, 'de 12', '—'),
+  ].join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   TABLA DE INFORMES
+═══════════════════════════════════════════════════════ */
+function populateFilters() {
+  const sectors  = [...new Set(NC.map(x=>x.sector).filter(Boolean))].sort();
+  const tipos    = [...new Set(NC.map(x=>x.tipo).filter(Boolean))].sort();
+  const impactos = [...new Set(NC.map(x=>x.impacto).filter(Boolean))];
+  const estados  = [...new Set(NC.map(x=>x.estado).filter(Boolean))];
+  const meses    = [...new Set(NC.map(x=>x.mes).filter(Boolean))];
+  const MESES_ORD = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  const fill = (id, opts, current) => {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">${current}</option>` + opts.map(o=>`<option value="${o}">${o}</option>`).join('');
+    sel.value = cur;
+  };
+
+  fill('fSector',  sectors,  'Todos los sectores');
+  fill('fTipo',    tipos,    'Todos los tipos');
+  fill('fImpacto', impactos, 'Todos los impactos');
+  fill('fEstado',  estados,  'Todos los estados');
+  fill('fMes', MESES_ORD.filter(m=>meses.includes(m)), 'Todos los meses');
+}
+
+function renderTable() {
+  const q     = (document.getElementById('fSearch')?.value||'').toLowerCase();
+  const sect  = document.getElementById('fSector')?.value||'';
+  const tipo  = document.getElementById('fTipo')?.value||'';
+  const imp   = document.getElementById('fImpacto')?.value||'';
+  const est   = document.getElementById('fEstado')?.value||'';
+  const mes   = document.getElementById('fMes')?.value||'';
+
+  let data = NC.filter(x =>
+    (!q    || [x.id,x.descripcion,x.sector,x.tipo,x.producto,x.mes,x.causa_raiz].some(v=>String(v||'').toLowerCase().includes(q))) &&
+    (!sect || x.sector === sect) &&
+    (!tipo || x.tipo === tipo) &&
+    (!imp  || x.impacto === imp) &&
+    (!est  || x.estado === est) &&
+    (!mes  || x.mes === mes)
+  );
+
+  data = [...data].sort((a,b)=>{
+    const va=a[sortField], vb=b[sortField];
+    return (va<vb?-1:va>vb?1:0)*sortDir;
+  });
+
+  document.getElementById('filterCount').textContent = `${data.length} resultados`;
+
+  if (!data.length) {
+    document.getElementById('tableWrap').innerHTML = `<div class="tbl-empty"><span class="te-icon">📭</span>Sin resultados para los filtros seleccionados.</div>`;
+    return;
+  }
+
+  function bImp(v){if(v==='Alto')return`<span class="badge b-alto">Alto</span>`;if(v==='Medio')return`<span class="badge b-medio">Medio</span>`;if(v==='Bajo')return`<span class="badge b-bajo">Bajo</span>`;return`<span class="badge b-otro">${v||'—'}</span>`;}
+  function bEst(v){if(v==='Cerrada')return`<span class="badge b-cerr">Cerrada</span>`;if(v==='En curso')return`<span class="badge b-curso">En curso</span>`;return`<span class="badge b-pend">Pendiente</span>`;}
+  function bSN(v){return v==='S'?`<span class="badge b-si">Sí</span>`:`<span class="badge b-no">No</span>`;}
+
+  const ths = [['id','ID'],['fecha','Fecha'],['sector','Sector'],['tipo','Tipo NC'],['descripcion','Descripción'],['impacto','Impacto'],['retrabajo','Retrab.'],['parada_produccion','Parada'],['recurrente','Recur.'],['piezas_afectadas','Piezas'],['estado','Estado'],['','Acciones']]
+    .map(([f,l])=>f?`<th class="${f===sortField?(sortDir===1?'sort-asc':'sort-desc'):''}" onclick="sortTable('${f}')">${l}</th>`:`<th>${l}</th>`).join('');
+
+  const rows = data.map(r=>`<tr>
+    <td class="td-mono">#${r.id}</td>
+    <td class="td-mono" style="white-space:nowrap">${r.fecha||'—'}</td>
+    <td style="font-size:12px;color:var(--text2);white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis">${r.sector||'—'}</td>
+    <td style="white-space:nowrap">${r.tipo||'—'}</td>
+    <td class="td-desc" title="${r.descripcion||''}">${r.descripcion||'—'}</td>
+    <td>${bImp(r.impacto)}</td>
+    <td>${bSN(r.retrabajo)}</td>
+    <td>${bSN(r.parada_produccion)}</td>
+    <td>${bSN(r.recurrente)}</td>
+    <td class="td-mono" style="text-align:right;color:${(parseInt(r.piezas_afectadas)||0)>0?'var(--accent)':'var(--text3)'}">${r.piezas_afectadas||0}</td>
+    <td>${bEst(r.estado)}</td>
+    <td style="white-space:nowrap">
+      <button class="btn btn-ghost btn-sm" onclick="openEditModal(${r.id})" title="Editar">✏</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteNC(${r.id})" title="Eliminar">🗑</button>
+    </td>
+  </tr>`).join('');
+
+  document.getElementById('tableWrap').innerHTML = `<table><thead><tr>${ths}</tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function sortTable(f){if(sortField===f)sortDir*=-1;else{sortField=f;sortDir=1;}renderTable();}
+
+/* ═══════════════════════════════════════════════════════
+   MODAL — VER / EDITAR NC
+═══════════════════════════════════════════════════════ */
+const FIELDS = [
+  ['fecha','Fecha','text'],['mes','Mes','text'],['sector','Sector','text'],
+  ['proceso','Proceso','text'],['tipo','Tipo NC','text'],['producto','Producto/Equipo','text'],
+  ['impacto','Impacto','text'],['retrabajo','Retrabajo (S/N)','text'],
+  ['parada_produccion','Parada prod. (S/N)','text'],['recurrente','Recurrente (S/N)','text'],
+  ['piezas_afectadas','Piezas afectadas','number'],
+  ['descripcion','Descripción','textarea','full'],
+  ['causa_raiz','Causa raíz','textarea','full'],
+  ['causa_cat','Categoría causa','text','full'],
+  ['accion_inmediata','Acción inmediata','textarea','full'],
+  ['accion_correctiva','Acción correctiva','textarea','full'],
+  ['accion_preventiva','Acción preventiva','textarea','full'],
+  ['estado','Estado','text'],['observaciones','Observaciones','text'],
+  ['nombre_archivo','Archivo origen','text'],
+];
+
+function buildModalFields(data) {
+  return FIELDS.map(([k,lbl,t,cls])=>{
+    const full = cls==='full' ? 'full' : '';
+    const v = data?.[k] ?? '';
+    const inp = t==='textarea'
+      ? `<textarea id="mf-${k}" rows="2">${v}</textarea>`
+      : `<input id="mf-${k}" type="${t}" value="${String(v).replace(/"/g,'&quot;')}">`;
+    return `<div class="fg ${full}"><label>${lbl}</label>${inp}</div>`;
+  }).join('');
+}
+
+function openEditModal(id) {
+  const r = NC.find(x=>x.id===parseInt(id));
+  if (!r) return;
+  editingId = id;
+  pendingNC = null;
+  document.getElementById('modalTitle').textContent = `✏ Editar NC #${id}`;
+  document.getElementById('modalSub').textContent = r.descripcion?.slice(0,80) || '';
+  document.getElementById('modalGrid').innerHTML = buildModalFields(r);
+  document.getElementById('btnConfirm').textContent = '✓ Guardar cambios';
+  document.getElementById('btnConfirm').onclick = saveEdit;
+  document.getElementById('overlay').classList.add('open');
+}
+
+async function saveEdit() {
+  const data = {};
+  FIELDS.forEach(([k,,t])=>{
+    const el = document.getElementById(`mf-${k}`);
+    if (el) data[k] = el.tagName==='TEXTAREA' ? el.value : (t==='number'?(parseInt(el.value)||0):el.value);
+  });
+  closeModal();
+  log(`Guardando cambios en NC #${editingId}…`, 'info');
+  try {
+    await updateNC(editingId, data);
+  } catch(e) {
+    log(`✗ Error: ${e.message}`, 'err');
+  }
+}
+
+function openConfirmModal(nc, filename) {
+  return new Promise(resolve => {
+    pendingNC = nc;
+    editingId = null;
+    document.getElementById('modalTitle').textContent = '🤖 IA extrajo estos datos — Revisá antes de confirmar';
+    document.getElementById('modalSub').textContent = `Archivo: ${filename} · Podés editar cualquier campo`;
+    document.getElementById('modalGrid').innerHTML = buildModalFields(nc);
+    document.getElementById('btnConfirm').textContent = '✓ Confirmar y guardar';
+    document.getElementById('btnConfirm').onclick = async () => {
+      const data = {};
+      FIELDS.forEach(([k,,t])=>{
+        const el = document.getElementById(`mf-${k}`);
+        if (el) data[k] = el.tagName==='TEXTAREA' ? el.value : (t==='number'?(parseInt(el.value)||0):el.value);
+      });
+      data.nombre_archivo = filename;
+      closeModal();
+      log('Guardando en Google Sheets…', 'info');
+      try {
+        await addNC(data);
+        resolve(true);
+      } catch(e) {
+        log(`✗ Error: ${e.message}`, 'err');
+        resolve(false);
+      }
+    };
+    document.getElementById('overlay').classList.add('open');
+  });
+}
+
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+  pendingNC = null; editingId = null;
+}
+
+/* ═══════════════════════════════════════════════════════
+   CARGA DE ARCHIVOS + IA
+═══════════════════════════════════════════════════════ */
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+
+dropzone.addEventListener('dragover', e=>{e.preventDefault();dropzone.classList.add('drag-over');});
+dropzone.addEventListener('dragleave',()=>dropzone.classList.remove('drag-over'));
+dropzone.addEventListener('drop',e=>{e.preventDefault();dropzone.classList.remove('drag-over');addFiles(e.dataTransfer.files);});
+fileInput.addEventListener('change',e=>{addFiles(e.target.files);fileInput.value='';});
+
+function addFiles(files) {
+  [...files].forEach(f=>{
+    if(pendFiles.find(x=>x.name===f.name))return;
+    pendFiles.push(f);
+    const d=document.createElement('div');d.className='file-item';d.id=`fi-${f.name.replace(/[^a-z0-9]/gi,'_')}`;
+    d.innerHTML=`<span>📋</span><span class="fi-name" title="${f.name}">${f.name}</span><span class="fi-status fsp" id="fis-${f.name.replace(/[^a-z0-9]/gi,'_')}">Pendiente</span>`;
+    document.getElementById('fileList').appendChild(d);
+  });
+  document.getElementById('btnProcess').disabled = pendFiles.length===0;
+}
+
+function setFS(name,cls,lbl){const k=name.replace(/[^a-z0-9]/gi,'_');const el=document.getElementById(`fis-${k}`);if(el){el.className=`fi-status ${cls}`;el.textContent=lbl;}}
+
+document.getElementById('btnProcess').addEventListener('click',async()=>{
+  if(processing||!pendFiles.length)return;
+  processing=true;
+  document.getElementById('btnProcess').disabled=true;
+  document.getElementById('btnIcon').innerHTML='<span class="spinner"></span>';
+  document.getElementById('btnText').textContent='Procesando…';
+  log(`Procesando ${pendFiles.length} archivo(s)…`,'info');
+  const q=[...pendFiles];pendFiles=[];
+  document.getElementById('fileList').innerHTML='';
+  for(const f of q)await procFile(f);
+  processing=false;
+  document.getElementById('btnIcon').textContent='⚡';
+  document.getElementById('btnText').textContent='Procesar con IA';
+  document.getElementById('btnProcess').disabled=false;
+  log('Procesamiento finalizado.','ok');
+});
+
+async function procFile(f) {
+  log(`Leyendo: ${f.name}`,'info');setFS(f.name,'fsr','Leyendo…');
+  try {
+    const text=await readText(f);
+    log('Enviando a IA para extracción…');setFS(f.name,'fsr','IA extrayendo…');
+    const ex=await extractAI(text,f.name);
+    if(!ex)throw new Error('La IA no pudo extraer datos');
+    log(`✓ Datos extraídos de ${f.name}`,'ok');setFS(f.name,'fsr','Confirmando…');
+    const ok=await openConfirmModal(ex,f.name);
+    setFS(f.name, ok?'fsd':'fse', ok?'Guardado ✓':'Cancelado');
+  }catch(e){log(`✗ Error en ${f.name}: ${e.message}`,'err');setFS(f.name,'fse','Error');}
+}
+
+function readText(file) {
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      let t=e.target.result;
+      if(file.name.endsWith('.html')||file.name.endsWith('.htm')){
+        const d=document.createElement('div');d.innerHTML=t;t=d.innerText;
+      }
+      res(t);
+    };
+    r.onerror=rej;r.readAsText(file,'UTF-8');
+  });
+}
+
+async function extractAI(text, filename) {
+  const trunc=text.length>7000?text.slice(0,7000)+'...':text;
+  const prompt=`Sos un analista de producción y calidad industrial de una planta de muebles argentina (Centro Estant).
+Analizá este informe de No Conformidad. Extraé TODOS los datos disponibles. Devolvé ÚNICAMENTE JSON puro, sin texto adicional, sin bloques markdown.
+
+INFORME:
+${trunc}
+
+Devolvé exactamente este JSON (sin bloques de codigo ni explicaciones, solo el JSON):
+{"fecha":"DD/MM/YYYY o texto de fecha","mes":"nombre del mes en español","sector":"sector o área del hallazgo","proceso":"proceso involucrado","tipo":"Error de planificación|Falla de equipo|Faltante de material|Defecto de proceso / calidad|Defecto de insumo/proveedor|Condición insegura|Falla operativa múltiple|Error de proceso|Otro","descripcion":"descripción breve máx 130 caracteres","producto":"producto o equipo afectado","causa_raiz":"causa raíz resumida","causa_cat":"Planificación / Métodos|Máquinas / Métodos|Mano de obra / Métodos|Materiales / Métodos|Medio ambiente / Métodos|Máquinas / Materiales|Planificación / Logística|Máquinas / Planificación / Métodos","piezas_afectadas":0,"retrabajo":"S|N","parada_produccion":"S|N","impacto":"Alto|Medio|Bajo","recurrente":"S|N","accion_inmediata":"acción inmediata resumida","accion_correctiva":"acción correctiva resumida","accion_preventiva":"acción preventiva resumida","estado":"Pendiente","observaciones":"observaciones relevantes"}`;
+
+  const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1200,messages:[{role:"user",content:prompt}]})});
+  if(!r.ok)throw new Error(`Error API Anthropic: ${r.status}`);
+  const d=await r.json();
+  const raw=d.content?.find(b=>b.type==='text')?.text||'';
+  const bt = String.fromCharCode(96);
+  const clean = raw.replace(new RegExp(bt+bt+bt+'json|'+bt+bt+bt,'g'),'').trim();
+  return JSON.parse(clean);
+}
+
+/* ═══════════════════════════════════════════════════════
+   CARGA MANUAL
+═══════════════════════════════════════════════════════ */
+async function addManual() {
+  const g=id=>document.getElementById(id)?.value?.trim()||'';
+  const nc={
+    fecha:g('fm-fecha'),mes:g('fm-mes'),sector:g('fm-sector'),proceso:g('fm-proceso'),
+    tipo:g('fm-tipo'),descripcion:g('fm-desc'),producto:g('fm-producto'),
+    causa_raiz:g('fm-causa'),causa_cat:g('fm-ccat'),
+    piezas_afectadas:parseInt(g('fm-piezas'))||0,
+    retrabajo:g('fm-retrabajo'),parada_produccion:g('fm-parada'),
+    impacto:g('fm-impacto'),recurrente:g('fm-recurrente'),
+    accion_inmediata:g('fm-ainm'),accion_correctiva:g('fm-acorr'),
+    accion_preventiva:g('fm-aprev'),estado:g('fm-estado'),observaciones:g('fm-obs'),
+    nombre_archivo:'Manual',
+  };
+  if(!nc.descripcion&&!nc.sector){alert('Completá al menos la descripción y el sector.');return;}
+  log('Guardando NC manual…','info');
+  try{
+    await addNC(nc);
+    alert('NC agregada correctamente al sistema.');
+  }catch(e){alert('Error al guardar: '+e.message);}
+}
+
+/* ═══════════════════════════════════════════════════════
+   CONFIGURACIÓN
+═══════════════════════════════════════════════════════ */
+function saveConfig() {
+  const url=document.getElementById('cfgUrl').value.trim();
+  if(!url){alert('Ingresá la URL del Apps Script.');return;}
+  CONFIG.apiUrl=url;
+  localStorage.setItem(CFG_KEY+'_url',url);
+  document.getElementById('cfgStatus').innerHTML='<span style="color:var(--green)">✓ URL guardada. Probando conexión…</span>';
+  updateConfigInfo();
+  testConnection();
+}
+
+async function testConnection() {
+  if(!CONFIG.apiUrl){document.getElementById('cfgStatus').innerHTML='<span style="color:var(--accent)">✗ No hay URL configurada</span>';return;}
+  document.getElementById('cfgStatus').innerHTML='<span style="color:var(--amber)">Probando…</span>';
+  try{
+    const d=await apiGet('ping');
+    document.getElementById('cfgStatus').innerHTML=`<span style="color:var(--green)">✓ Conexión exitosa — ${d.message} · ${new Date(d.time).toLocaleString('es-AR')}</span>`;
+    setConn('online','Conectado');
+    CONFIG.connected=true;
+    updateBanners();
+    await syncData();
+  }catch(e){
+    document.getElementById('cfgStatus').innerHTML=`<span style="color:var(--accent)">✗ Error: ${e.message}</span>`;
+    setConn('offline','Sin conexión');
+  }
+}
+
+function updateConfigInfo() {
+  const info=CONFIG.apiUrl
+    ? `URL configurada: <code style="font-family:var(--f-mono);background:var(--bg);padding:2px 6px;border-radius:4px">${CONFIG.apiUrl.slice(0,60)}…</code><br>Estado: <strong>${CONFIG.connected?'Conectado ✓':'Sin verificar'}</strong>`
+    : 'Sin URL configurada. Seguí los pasos de arriba para conectar con Google Sheets.';
+  document.getElementById('cfgInfo').innerHTML=info;
+  if(CONFIG.apiUrl)document.getElementById('cfgUrl').value=CONFIG.apiUrl;
+}
+
+function updateBanners() {
+  document.getElementById('storeBanner').style.display=CONFIG.connected?'flex':'none';
+  document.getElementById('localBanner').style.display=CONFIG.connected?'none':'flex';
+}
+
+async function importHistorico() {
+  if(!CONFIG.apiUrl){alert('Primero configurá la URL de Google Sheets.');return;}
+  if(!confirm(`¿Importar las 15 NC históricas (N°2 a N°16) a Google Sheets?\nEsto no elimina datos existentes, solo agrega registros nuevos.`))return;
+  log('Importando NC históricas…','info');
+  try{
+    await apiPost({action:'bulkInsert',data:HISTORICO});
+    log('✓ NC históricas importadas correctamente','ok');
+    await syncData();
+  }catch(e){log(`✗ Error: ${e.message}`,'err');}
+}
+
+/* ═══════════════════════════════════════════════════════
+   EXPORT CSV
+═══════════════════════════════════════════════════════ */
+function exportCSV() {
+  const hdrs=['ID','Fecha','Mes','Año','Semana','Sector','Proceso','Tipo NC','Descripción','Producto','Causa Raíz','Cat. Causa','Impacto','Retrabajo','Parada Prod.','Recurrente','Piezas Afect.','Acción Inm.','Acción Corr.','Acción Prev.','Estado','Observaciones','Fecha Carga','Archivo'];
+  const keys=['id','fecha','mes','año','semana','sector','proceso','tipo','descripcion','producto','causa_raiz','causa_cat','impacto','retrabajo','parada_produccion','recurrente','piezas_afectadas','accion_inmediata','accion_correctiva','accion_preventiva','estado','observaciones','fecha_carga','nombre_archivo'];
+  const rows=NC.map(r=>keys.map(k=>`"${String(r[k]||'').replace(/"/g,'""')}"`).join(','));
+  const csv='\uFEFF'+[hdrs.join(','),...rows].join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));a.download=`NC_CentroEstant_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+}
+
+/* ═══════════════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════════════ */
+function setConn(status, text) {
+  const dot=document.getElementById('connDot');
+  const txt=document.getElementById('connText');
+  if(dot){dot.className='conn-dot '+status;}
+  if(txt)txt.textContent=text;
+  CONFIG.connected=(status==='online');
+}
+
+function log(msg,cls='dim') {
+  const lb=document.getElementById('logBox');
+  if(!lb)return;
+  const d=document.createElement('div');d.className=`ll ${cls}`;
+  d.textContent=`[${new Date().toLocaleTimeString('es-AR')}] ${msg}`;
+  lb.appendChild(d);lb.scrollTop=lb.scrollHeight;
+}
+
+function refreshAll() {
+  updateKPIs();
+  initCharts();
+  populateFilters();
+  renderTable();
+  refreshAnalisis();
+  document.getElementById('topDate').textContent=new Date().toLocaleDateString('es-AR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+}
+
+/* ═══════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════ */
+window.addEventListener('load', async () => {
+  document.getElementById('topDate').textContent = new Date().toLocaleDateString('es-AR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+  updateConfigInfo();
+  updateBanners();
+
+  if (CONFIG.apiUrl) {
+    await syncData();
+  } else {
+    setConn('offline', 'Sin configurar — Ver ⚙ Configuración');
+    log('Sin URL de Google Sheets. Configurá la conexión en ⚙ Configuración.', 'err');
+    refreshAll();
+  }
+
+  // Auto-sync cada 5 minutos
+  setInterval(() => { if(CONFIG.apiUrl) syncData(); }, 5 * 60 * 1000);
+});
+</script>
+</body>
+</html>
