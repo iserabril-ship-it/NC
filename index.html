@@ -1354,7 +1354,7 @@ Devolvé exactamente este JSON (sin backticks ni explicaciones):
   if (!CONFIG.apiKey) throw new Error('No hay API Key de Gemini configurada. Andá a ⚙ Configuración → Paso 3.');
 
   // Usar Google Gemini API (gratuita)
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${CONFIG.apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${CONFIG.apiKey}`;
   const body = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: { temperature: 0.1, maxOutputTokens: 1200 }
