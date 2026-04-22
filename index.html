@@ -514,7 +514,7 @@ canvas { max-height: 250px; }
         ☁ <strong>Google Sheets conectado</strong> — Los datos se guardan en la nube y son accesibles desde cualquier dispositivo.
       </div>
       <div class="banner warn" id="aiBanner" style="display:none">
-        🤖 <strong>Sin API Key de Anthropic</strong> — Para procesar informes con IA, configurá tu clave en ⚙ Configuración → Paso 3.
+        🤖 <strong>Sin API Key de Gemini</strong> — Para procesar informes con IA, configurá tu clave gratuita de Google en ⚙ Configuración → Paso 3.
       </div>
       <div class="banner warn" id="localBanner" style="display:none">
         ⚠ <strong>Sin conexión a Google Sheets</strong> — Configurá la URL del backend en ⚙ Configuración.
@@ -612,16 +612,16 @@ canvas { max-height: 250px; }
       </div>
 
       <div class="config-card">
-        <h4>🤖 Paso 3 — API Key de Anthropic (para extracción con IA)</h4>
-        <p>La IA que lee los informes automáticamente necesita una clave de Anthropic. Es gratuita para empezar.</p>
+        <h4>🤖 Paso 3 — API Key de Google Gemini (gratuita, para extracción con IA)</h4>
+        <p>La IA que lee los informes usa Google Gemini, que tiene una capa <strong>100% gratuita</strong>. Solo necesitás una cuenta de Google que ya tenés.</p>
         <ol class="step-list">
-          <li>Entrá a <strong>console.anthropic.com</strong> y creá una cuenta gratuita.</li>
-          <li>Andá a <strong>"API Keys"</strong> y hacé clic en <strong>"Create Key"</strong>.</li>
-          <li>Copiá la clave (empieza con <code style="font-family:var(--f-mono);background:var(--bg);padding:2px 6px;border-radius:4px">sk-ant-...</code>).</li>
-          <li>Pegala en el campo de abajo y hacé clic en "Guardar".</li>
+          <li>Entrá a <strong>aistudio.google.com</strong> con tu cuenta de Google.</li>
+          <li>Hacé clic en <strong>"Get API Key"</strong> → <strong>"Create API key"</strong>.</li>
+          <li>Seleccioná un proyecto de Google (o creá uno nuevo).</li>
+          <li>Copiá la clave generada y pegala en el campo de abajo.</li>
         </ol>
         <div style="display:flex;gap:10px;margin-top:10px">
-          <input id="cfgApiKey" type="password" placeholder="sk-ant-api03-..." style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--f-mono);font-size:12px">
+          <input id="cfgApiKey" type="password" placeholder="AIzaSy..." style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--f-mono);font-size:12px">
           <button class="btn btn-primary" onclick="saveApiKey()">Guardar clave</button>
           <button class="btn btn-ghost" onclick="toggleApiKeyVisibility()">👁 Ver</button>
         </div>
@@ -1341,24 +1341,46 @@ function readText(file) {
 }
 
 async function extractAI(text, filename) {
-  const trunc=text.length>7000?text.slice(0,7000)+'...':text;
-  const prompt=`Sos un analista de producción y calidad industrial de una planta de muebles argentina (Centro Estant).
-Analizá este informe de No Conformidad. Extraé TODOS los datos disponibles. Devolvé ÚNICAMENTE JSON puro, sin texto adicional, sin bloques markdown.
+  const trunc = text.length > 7000 ? text.slice(0, 7000) + '...' : text;
+  const prompt = `Sos un analista de producción y calidad industrial de una planta de muebles argentina (Centro Estant).
+Analizá este informe de No Conformidad. Extraé TODOS los datos disponibles. Devolvé ÚNICAMENTE JSON puro, sin texto adicional, sin bloques markdown, sin explicaciones.
 
 INFORME:
 ${trunc}
 
-Devolvé exactamente este JSON (sin bloques de codigo ni explicaciones, solo el JSON):
+Devolvé exactamente este JSON (sin backticks ni explicaciones):
 {"fecha":"DD/MM/YYYY o texto de fecha","mes":"nombre del mes en español","sector":"sector o área del hallazgo","proceso":"proceso involucrado","tipo":"Error de planificación|Falla de equipo|Faltante de material|Defecto de proceso / calidad|Defecto de insumo/proveedor|Condición insegura|Falla operativa múltiple|Error de proceso|Otro","descripcion":"descripción breve máx 130 caracteres","producto":"producto o equipo afectado","causa_raiz":"causa raíz resumida","causa_cat":"Planificación / Métodos|Máquinas / Métodos|Mano de obra / Métodos|Materiales / Métodos|Medio ambiente / Métodos|Máquinas / Materiales|Planificación / Logística|Máquinas / Planificación / Métodos","piezas_afectadas":0,"retrabajo":"S|N","parada_produccion":"S|N","impacto":"Alto|Medio|Bajo","recurrente":"S|N","accion_inmediata":"acción inmediata resumida","accion_correctiva":"acción correctiva resumida","accion_preventiva":"acción preventiva resumida","estado":"Pendiente","observaciones":"observaciones relevantes"}`;
 
-  if (!CONFIG.apiKey) throw new Error('No hay API Key configurada. Andá a ⚙ Configuración → Paso 3 y pegá tu clave de Anthropic.');
-  const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":CONFIG.apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1200,messages:[{role:"user",content:prompt}]})});
-  if(!r.ok){const errText=await r.text();throw new Error(`Error API Anthropic ${r.status}: ${errText.slice(0,200)}`);}
-  const d=await r.json();
-  const raw=d.content?.find(b=>b.type==='text')?.text||'';
-  const bt = String.fromCharCode(96);
-  const clean = raw.replace(new RegExp(bt+bt+bt+'json|'+bt+bt+bt,'g'),'').trim();
-  return JSON.parse(clean);
+  if (!CONFIG.apiKey) throw new Error('No hay API Key de Gemini configurada. Andá a ⚙ Configuración → Paso 3.');
+
+  // Usar Google Gemini API (gratuita)
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${CONFIG.apiKey}`;
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: { temperature: 0.1, maxOutputTokens: 1200 }
+  };
+
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if (!r.ok) {
+    const errText = await r.text();
+    throw new Error(`Error API Gemini ${r.status}: ${errText.slice(0, 200)}`);
+  }
+
+  const d = await r.json();
+  const raw = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  if (!raw) throw new Error('Gemini no devolvió contenido. Verificá tu API Key.');
+
+  // Limpiar respuesta y parsear JSON
+  const cleaned = raw.replace(/```json|```/g, '').trim();
+  // Extraer solo el JSON si viene con texto extra
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('No se pudo extraer JSON de la respuesta de Gemini.');
+  return JSON.parse(jsonMatch[0]);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -1401,8 +1423,8 @@ function saveConfig() {
 function saveApiKey() {
   const key = document.getElementById('cfgApiKey').value.trim();
   if (!key) { alert('Ingresá la API Key.'); return; }
-  if (!key.startsWith('sk-ant-')) {
-    document.getElementById('cfgApiStatus').innerHTML='<span style="color:var(--accent)">⚠ La clave debería empezar con sk-ant-... Verificá que la copiaste completa.</span>';
+  if (key.length < 20) {
+    document.getElementById('cfgApiStatus').innerHTML='<span style="color:var(--accent)">⚠ La clave parece muy corta. Verificá que la copiaste completa.</span>';
     return;
   }
   CONFIG.apiKey = key;
@@ -1439,8 +1461,8 @@ function updateConfigInfo() {
     ? `✓ Google Sheets: <code style="font-family:var(--f-mono);background:var(--bg);padding:2px 6px;border-radius:4px">${CONFIG.apiUrl.slice(0,55)}…</code> — <strong>${CONFIG.connected?'Conectado ✓':'Sin verificar'}</strong>`
     : '✗ Google Sheets: Sin configurar';
   const aiStatus = CONFIG.apiKey
-    ? `✓ API Anthropic: <code style="font-family:var(--f-mono);background:var(--bg);padding:2px 6px;border-radius:4px">${CONFIG.apiKey.slice(0,12)}…</code> — Configurada`
-    : '✗ API Anthropic: Sin configurar (necesaria para procesar informes con IA)';
+    ? `✓ API Gemini (Google): <code style="font-family:var(--f-mono);background:var(--bg);padding:2px 6px;border-radius:4px">${CONFIG.apiKey.slice(0,12)}…</code> — Configurada`
+    : '✗ API Gemini (Google): Sin configurar — necesaria para procesar informes con IA';
   document.getElementById('cfgInfo').innerHTML = sheetsStatus + '<br>' + aiStatus;
   if(CONFIG.apiUrl) document.getElementById('cfgUrl').value=CONFIG.apiUrl;
   if(CONFIG.apiKey) {
