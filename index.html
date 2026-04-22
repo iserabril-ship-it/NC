@@ -511,10 +511,13 @@ canvas { max-height: 250px; }
       </div>
 
       <div class="banner info" id="storeBanner">
-        ☁ <strong>Almacenamiento en la nube activado</strong> — Los datos se guardan en Google Sheets y son accesibles desde cualquier dispositivo.
+        ☁ <strong>Google Sheets conectado</strong> — Los datos se guardan en la nube y son accesibles desde cualquier dispositivo.
+      </div>
+      <div class="banner warn" id="aiBanner" style="display:none">
+        🤖 <strong>Sin API Key de Anthropic</strong> — Para procesar informes con IA, configurá tu clave en ⚙ Configuración → Paso 3.
       </div>
       <div class="banner warn" id="localBanner" style="display:none">
-        ⚠ <strong>Sin conexión a Google Sheets</strong> — Configurá la URL del backend en la pestaña Configuración para habilitar el almacenamiento en la nube.
+        ⚠ <strong>Sin conexión a Google Sheets</strong> — Configurá la URL del backend en ⚙ Configuración.
       </div>
 
       <div class="g2" style="gap:20px">
@@ -598,8 +601,8 @@ canvas { max-height: 250px; }
       </div>
 
       <div class="config-card">
-        <h4>🔗 Paso 2 — Pegar la URL en esta plataforma</h4>
-        <p>Pegá la URL que copiaste en el campo de abajo y hacé clic en "Conectar". Eso es todo.</p>
+        <h4>🔗 Paso 2 — Pegar la URL de Google Sheets</h4>
+        <p>Pegá la URL del Apps Script que copiaste y hacé clic en "Conectar".</p>
         <div style="display:flex;gap:10px;margin-top:10px">
           <input id="cfgUrl" type="text" placeholder="https://script.google.com/macros/s/…/exec" style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--f-mono);font-size:12px">
           <button class="btn btn-primary" onclick="saveConfig()">Conectar</button>
@@ -609,7 +612,24 @@ canvas { max-height: 250px; }
       </div>
 
       <div class="config-card">
-        <h4>📥 Paso 3 (opcional) — Importar datos históricos</h4>
+        <h4>🤖 Paso 3 — API Key de Anthropic (para extracción con IA)</h4>
+        <p>La IA que lee los informes automáticamente necesita una clave de Anthropic. Es gratuita para empezar.</p>
+        <ol class="step-list">
+          <li>Entrá a <strong>console.anthropic.com</strong> y creá una cuenta gratuita.</li>
+          <li>Andá a <strong>"API Keys"</strong> y hacé clic en <strong>"Create Key"</strong>.</li>
+          <li>Copiá la clave (empieza con <code style="font-family:var(--f-mono);background:var(--bg);padding:2px 6px;border-radius:4px">sk-ant-...</code>).</li>
+          <li>Pegala en el campo de abajo y hacé clic en "Guardar".</li>
+        </ol>
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <input id="cfgApiKey" type="password" placeholder="sk-ant-api03-..." style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--f-mono);font-size:12px">
+          <button class="btn btn-primary" onclick="saveApiKey()">Guardar clave</button>
+          <button class="btn btn-ghost" onclick="toggleApiKeyVisibility()">👁 Ver</button>
+        </div>
+        <div id="cfgApiStatus" style="margin-top:10px;font-size:12px;color:var(--text3)"></div>
+      </div>
+
+      <div class="config-card">
+        <h4>📥 Paso 4 (opcional) — Importar datos históricos</h4>
         <p>Si ya tenías datos cargados en la versión anterior de la plataforma (localStorage), podés importarlos acá para que queden en Google Sheets.</p>
         <div style="display:flex;gap:10px;margin-top:10px">
           <button class="btn btn-ghost" onclick="importHistorico()">📦 Importar NC históricas (N°2 a N°16)</button>
@@ -617,7 +637,7 @@ canvas { max-height: 250px; }
       </div>
 
       <div class="config-card">
-        <h4>ℹ Estado actual de la conexión</h4>
+        <h4>ℹ Paso 5 — Estado actual de la conexión</h4>
         <div id="cfgInfo" style="font-size:12px;color:var(--text2);line-height:1.8">Cargando…</div>
       </div>
     </div>
@@ -650,6 +670,7 @@ canvas { max-height: 250px; }
 const CFG_KEY = 'ce_config_v1';
 let CONFIG = {
   apiUrl: localStorage.getItem(CFG_KEY + '_url') || '',
+  apiKey: localStorage.getItem(CFG_KEY + '_apikey') || '',
   connected: false,
 };
 
@@ -1330,8 +1351,9 @@ ${trunc}
 Devolvé exactamente este JSON (sin bloques de codigo ni explicaciones, solo el JSON):
 {"fecha":"DD/MM/YYYY o texto de fecha","mes":"nombre del mes en español","sector":"sector o área del hallazgo","proceso":"proceso involucrado","tipo":"Error de planificación|Falla de equipo|Faltante de material|Defecto de proceso / calidad|Defecto de insumo/proveedor|Condición insegura|Falla operativa múltiple|Error de proceso|Otro","descripcion":"descripción breve máx 130 caracteres","producto":"producto o equipo afectado","causa_raiz":"causa raíz resumida","causa_cat":"Planificación / Métodos|Máquinas / Métodos|Mano de obra / Métodos|Materiales / Métodos|Medio ambiente / Métodos|Máquinas / Materiales|Planificación / Logística|Máquinas / Planificación / Métodos","piezas_afectadas":0,"retrabajo":"S|N","parada_produccion":"S|N","impacto":"Alto|Medio|Bajo","recurrente":"S|N","accion_inmediata":"acción inmediata resumida","accion_correctiva":"acción correctiva resumida","accion_preventiva":"acción preventiva resumida","estado":"Pendiente","observaciones":"observaciones relevantes"}`;
 
-  const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1200,messages:[{role:"user",content:prompt}]})});
-  if(!r.ok)throw new Error(`Error API Anthropic: ${r.status}`);
+  if (!CONFIG.apiKey) throw new Error('No hay API Key configurada. Andá a ⚙ Configuración → Paso 3 y pegá tu clave de Anthropic.');
+  const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":CONFIG.apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1200,messages:[{role:"user",content:prompt}]})});
+  if(!r.ok){const errText=await r.text();throw new Error(`Error API Anthropic ${r.status}: ${errText.slice(0,200)}`);}
   const d=await r.json();
   const raw=d.content?.find(b=>b.type==='text')?.text||'';
   const bt = String.fromCharCode(96);
@@ -1376,6 +1398,26 @@ function saveConfig() {
   testConnection();
 }
 
+function saveApiKey() {
+  const key = document.getElementById('cfgApiKey').value.trim();
+  if (!key) { alert('Ingresá la API Key.'); return; }
+  if (!key.startsWith('sk-ant-')) {
+    document.getElementById('cfgApiStatus').innerHTML='<span style="color:var(--accent)">⚠ La clave debería empezar con sk-ant-... Verificá que la copiaste completa.</span>';
+    return;
+  }
+  CONFIG.apiKey = key;
+  localStorage.setItem(CFG_KEY+'_apikey', key);
+  document.getElementById('cfgApiStatus').innerHTML='<span style="color:var(--green)">✓ API Key guardada correctamente. La IA ya puede procesar informes.</span>';
+  document.getElementById('cfgApiKey').value = key.slice(0,12) + '••••••••••••••••••••••••••••••';
+  updateConfigInfo();
+  log('✓ API Key de Anthropic configurada', 'ok');
+}
+
+function toggleApiKeyVisibility() {
+  const input = document.getElementById('cfgApiKey');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+
 async function testConnection() {
   if(!CONFIG.apiUrl){document.getElementById('cfgStatus').innerHTML='<span style="color:var(--accent)">✗ No hay URL configurada</span>';return;}
   document.getElementById('cfgStatus').innerHTML='<span style="color:var(--amber)">Probando…</span>';
@@ -1393,16 +1435,25 @@ async function testConnection() {
 }
 
 function updateConfigInfo() {
-  const info=CONFIG.apiUrl
-    ? `URL configurada: <code style="font-family:var(--f-mono);background:var(--bg);padding:2px 6px;border-radius:4px">${CONFIG.apiUrl.slice(0,60)}…</code><br>Estado: <strong>${CONFIG.connected?'Conectado ✓':'Sin verificar'}</strong>`
-    : 'Sin URL configurada. Seguí los pasos de arriba para conectar con Google Sheets.';
-  document.getElementById('cfgInfo').innerHTML=info;
-  if(CONFIG.apiUrl)document.getElementById('cfgUrl').value=CONFIG.apiUrl;
+  const sheetsStatus = CONFIG.apiUrl
+    ? `✓ Google Sheets: <code style="font-family:var(--f-mono);background:var(--bg);padding:2px 6px;border-radius:4px">${CONFIG.apiUrl.slice(0,55)}…</code> — <strong>${CONFIG.connected?'Conectado ✓':'Sin verificar'}</strong>`
+    : '✗ Google Sheets: Sin configurar';
+  const aiStatus = CONFIG.apiKey
+    ? `✓ API Anthropic: <code style="font-family:var(--f-mono);background:var(--bg);padding:2px 6px;border-radius:4px">${CONFIG.apiKey.slice(0,12)}…</code> — Configurada`
+    : '✗ API Anthropic: Sin configurar (necesaria para procesar informes con IA)';
+  document.getElementById('cfgInfo').innerHTML = sheetsStatus + '<br>' + aiStatus;
+  if(CONFIG.apiUrl) document.getElementById('cfgUrl').value=CONFIG.apiUrl;
+  if(CONFIG.apiKey) {
+    const el = document.getElementById('cfgApiKey');
+    if(el) el.value = CONFIG.apiKey.slice(0,12)+'••••••••••••••••••••••••••••••';
+  }
 }
 
 function updateBanners() {
   document.getElementById('storeBanner').style.display=CONFIG.connected?'flex':'none';
   document.getElementById('localBanner').style.display=CONFIG.connected?'none':'flex';
+  const aiBanner = document.getElementById('aiBanner');
+  if(aiBanner) aiBanner.style.display=(!CONFIG.apiKey)?'flex':'none';
 }
 
 async function importHistorico() {
