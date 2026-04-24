@@ -1,1004 +1,296 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SGI · No Conformidades · Centro Estant</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{--brand:#0f3460;--blue:#1a56db;--blue-l:#e8f0fe;--red:#d93025;--red-l:#fde8ea;--green:#2d9e6b;--green-l:#e6f5ef;--amber:#d97706;--amber-l:#fef3c7;--purple:#7c3aed;--purple-l:#f3efff;--teal:#0891b2;--teal-l:#e0f7fa;--bg:#f4f6fb;--surface:#fff;--surface2:#f8fafd;--border:#e2e8f2;--border2:#c8d4e8;--text:#0f1929;--text2:#3d4f6e;--text3:#7a8fae;--shadow-sm:0 2px 8px rgba(15,52,96,.08);--shadow:0 4px 16px rgba(15,52,96,.10);--shadow-lg:0 12px 40px rgba(15,52,96,.14);--r:10px;--f:'Outfit',sans-serif;--m:'JetBrains Mono',monospace;--sw:230px;--sh:58px}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{font-size:14px;-webkit-font-smoothing:antialiased}
-body{font-family:var(--f);background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
-::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-/* TOPBAR */
-.topbar{height:var(--sh);background:var(--brand);display:flex;align-items:center;justify-content:space-between;padding:0 20px 0 0;flex-shrink:0;box-shadow:0 2px 12px rgba(15,52,96,.3);z-index:100}
-.tl{display:flex;align-items:center;width:var(--sw);padding:0 20px;border-right:1px solid rgba(255,255,255,.12)}
-.logo{font-weight:800;font-size:17px;color:#fff;letter-spacing:-.3px}.logo span{color:#5b9cf6}
-.tc{flex:1;padding:0 20px;display:flex;align-items:center;gap:12px}
-.topbar-title{font-size:13px;font-weight:500;color:rgba(255,255,255,.7)}
-.conn-badge{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:11px;color:rgba(255,255,255,.8);font-family:var(--m)}
-.cdot{width:7px;height:7px;border-radius:50%;background:#6ee7b7}.cdot.off{background:#fca5a5}.cdot.load{background:#fde68a;animation:pulse 1s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.tr{display:flex;align-items:center;gap:10px}
-.top-date{font-family:var(--m);font-size:11px;color:rgba(255,255,255,.5)}
-.btn-sync{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--f);display:flex;align-items:center;gap:6px;transition:all .2s}
-.btn-sync:hover{background:rgba(255,255,255,.2)}
-/* APP */
-.app-body{display:flex;flex:1;overflow:hidden}
-/* SIDEBAR */
-.sidebar{width:var(--sw);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
-.sb-sec{padding:16px 12px 8px}
-.sb-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:0 8px;margin-bottom:4px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;border:none;background:none;width:100%;text-align:left;transition:all .15s}
-.nav-item:hover{background:var(--bg);color:var(--text)}.nav-item.active{background:var(--blue-l);color:var(--blue);font-weight:600}
-.nav-icon{font-size:16px;width:20px;text-align:center}
-.nav-badge{margin-left:auto;background:var(--amber);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;font-family:var(--m)}
-.sb-footer{margin-top:auto;padding:12px;border-top:1px solid var(--border)}
-.sb-stat{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:var(--bg);border-radius:6px;margin-bottom:6px}
-.ss-lbl{font-size:11px;color:var(--text3)}.ss-val{font-family:var(--m);font-size:12px;font-weight:600;color:var(--blue)}
-/* MAIN */
-.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
-.view{display:none;padding:24px 28px;animation:fi .2s ease}.view.active{display:block}
-@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-/* CARDS */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 1px 3px rgba(15,52,96,.06)}
-.card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.card-title{font-size:13px;font-weight:700;color:var(--text)}.card-sub{font-size:11px;color:var(--text3)}.card-body{padding:18px}
-/* GRID */
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
-.g6{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}.mb4{margin-bottom:16px}.mb3{margin-bottom:12px}.mt4{margin-top:16px}
-/* KPI */
-.kpi{position:relative;padding:16px 18px;overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:default}
-.kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
-.kpi-s{position:absolute;top:0;left:0;right:0;height:3px}
-.kpi-lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.7px}
-.kpi-val{font-size:34px;font-weight:800;line-height:1.1;margin:6px 0 3px;letter-spacing:-1.5px}
-.kpi-ftr{font-size:11px;color:var(--text3)}
-.kpi-ico{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:32px;opacity:.08}
-.kpi.blue .kpi-val{color:var(--blue)}.kpi.blue .kpi-s{background:var(--blue)}
-.kpi.red .kpi-val{color:var(--red)}.kpi.red .kpi-s{background:var(--red)}
-.kpi.green .kpi-val{color:var(--green)}.kpi.green .kpi-s{background:var(--green)}
-.kpi.amber .kpi-val{color:var(--amber)}.kpi.amber .kpi-s{background:var(--amber)}
-.kpi.purple .kpi-val{color:var(--purple)}.kpi.purple .kpi-s{background:var(--purple)}
-.kpi.teal .kpi-val{color:var(--teal)}.kpi.teal .kpi-s{background:var(--teal)}
-/* BADGES */
-.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
-.b-alto{background:var(--red-l);color:var(--red)}.b-medio{background:var(--amber-l);color:var(--amber)}.b-bajo{background:var(--green-l);color:var(--green)}
-.b-plan{background:var(--blue-l);color:var(--blue)}.b-maq{background:var(--purple-l);color:var(--purple)}.b-mat{background:#fff7ed;color:#c2410c}
-.b-otro{background:var(--surface2);color:var(--text2)}.b-si{background:var(--red-l);color:var(--red)}.b-no{background:var(--green-l);color:var(--green)}
-.b-pend{background:var(--amber-l);color:var(--amber)}.b-curso{background:var(--blue-l);color:var(--blue)}.b-cerr{background:var(--green-l);color:var(--green)}
-/* TABLE */
-.tbl-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:12.5px}
-thead th{background:var(--surface2);border-bottom:1px solid var(--border);padding:9px 12px;text-align:left;font-size:10.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0}
-thead th:hover{color:var(--blue)}.sort-asc::after{content:' ↑'}.sort-desc::after{content:' ↓'}
-tbody tr{border-bottom:1px solid var(--border);transition:background .12s}tbody tr:last-child{border-bottom:none}tbody tr:hover{background:var(--blue-l)}
-tbody td{padding:9px 12px;vertical-align:middle}.td-mono{font-family:var(--m);font-size:11px;color:var(--text3)}
-.td-desc{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tbl-empty{text-align:center;padding:60px 20px;color:var(--text3)}
-/* PARETO */
-.pareto-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-.pareto-lbl{font-size:12px;width:190px;flex-shrink:0;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pareto-track{flex:1;background:var(--surface2);border-radius:4px;height:22px;overflow:hidden}
-.pareto-fill{height:100%;background:var(--blue);border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:600;color:#fff;min-width:6px;transition:width .6s cubic-bezier(.4,0,.2,1)}
-.pareto-n{font-size:12px;font-family:var(--m);color:var(--text3);width:28px;text-align:right}
-.pareto-pct{font-size:11px;color:var(--text3);width:40px;text-align:right;font-family:var(--m)}
-/* INSIGHT */
-.insight{border-left:3px solid;border-radius:0 var(--r) var(--r) 0;padding:12px 16px;margin-bottom:10px}
-.insight.alert{border-color:var(--red);background:var(--red-l)}.insight.warn{border-color:var(--amber);background:var(--amber-l)}
-.insight.good{border-color:var(--green);background:var(--green-l)}.insight.info{border-color:var(--blue);background:var(--blue-l)}
-.insight-title{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:3px}.insight-body{font-size:12px;color:var(--text2);line-height:1.5}
-/* FORMS */
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.fg{display:flex;flex-direction:column;gap:4px}.fg.full{grid-column:1/-1}
-.fg label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3)}
-.fg input,.fg select,.fg textarea{padding:8px 11px;border:1px solid var(--border);border-radius:6px;font-family:var(--f);font-size:13px;color:var(--text);background:var(--bg);transition:border-color .15s,box-shadow .15s}
-.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,86,219,.12);background:var(--surface)}
-.fg textarea{resize:vertical;min-height:60px}
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:6px;border:none;cursor:pointer;font-family:var(--f);font-size:13px;font-weight:600;transition:all .15s}
-.btn-p{background:var(--blue);color:#fff}.btn-p:hover:not(:disabled){background:#1546c0;box-shadow:0 4px 14px rgba(26,86,219,.35)}.btn-p:disabled{opacity:.45;cursor:not-allowed}
-.btn-d{background:var(--red);color:#fff}.btn-d:hover{background:#c0282f}
-.btn-g{background:var(--surface);border:1px solid var(--border);color:var(--text2)}.btn-g:hover{border-color:var(--blue);color:var(--blue)}
-.btn-s{background:var(--green);color:#fff}.btn-s:hover{background:#22855a}
-.btn-full{width:100%;justify-content:center}.btn-sm{padding:6px 12px;font-size:12px}
-/* DROPZONE */
-.dropzone{border:2px dashed var(--border2);border-radius:16px;padding:40px 24px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--bg)}
-.dropzone:hover,.dropzone.dov{border-color:var(--blue);background:var(--blue-l)}.dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer}
-.dz-icon{font-size:44px;display:block;margin-bottom:12px}.dz-title{font-size:15px;font-weight:700;color:var(--text)}.dz-sub{font-size:12px;color:var(--text3);margin-top:5px;font-family:var(--m)}
-/* FILE LIST */
-.file-list{display:flex;flex-direction:column;gap:7px;margin-top:14px}
-.file-item{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 14px;display:flex;align-items:center;gap:10px}
-.fi-name{flex:1;font-size:12px;font-family:var(--m);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)}
-.fi-status{font-size:10px;font-family:var(--m);font-weight:700;padding:2px 8px;border-radius:10px}
-.fsp{background:var(--surface2);color:var(--text3)}.fsr{background:var(--amber-l);color:var(--amber)}.fsd{background:var(--green-l);color:var(--green)}.fse{background:var(--red-l);color:var(--red)}
-/* LOG */
-.log-box{background:var(--text);border-radius:6px;padding:12px 14px;height:180px;overflow-y:auto;font-family:var(--m);font-size:11px}
-.ll{line-height:2}.ll.ok{color:#6ee7b7}.ll.err{color:#fca5a5}.ll.info{color:#93c5fd}.ll.dim{color:#4a5568}
-/* MODAL */
-.overlay{position:fixed;inset:0;background:rgba(15,25,41,.6);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(4px)}
-.overlay.open{opacity:1;pointer-events:all}
-.modal{background:var(--surface);border-radius:16px;box-shadow:var(--shadow-lg);width:760px;max-height:90vh;overflow-y:auto;padding:28px;transform:scale(.96) translateY(10px);transition:transform .2s}
-.overlay.open .modal{transform:scale(1) translateY(0)}
-.modal-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px}
-.modal-hdr h3{font-size:17px;font-weight:800;color:var(--blue)}.modal-hdr p{font-size:12px;color:var(--text3);margin-top:3px}
-.modal-close{background:none;border:none;cursor:pointer;font-size:22px;color:var(--text3);padding:2px;line-height:1}
-/* CONFIG */
-.cfg-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:14px}
-.cfg-card h4{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;gap:8px}
-.cfg-card p{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px}
-.step-list{list-style:none;counter-reset:steps}
-.step-list li{counter-increment:steps;display:flex;gap:12px;margin-bottom:10px;font-size:12px;color:var(--text2);line-height:1.5}
-.step-list li::before{content:counter(steps);background:var(--blue);color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
-.code-block{background:var(--text);color:#e2e8f0;font-family:var(--m);font-size:11px;padding:12px 14px;border-radius:6px;overflow-x:auto;line-height:1.8;margin:8px 0;word-break:break-all}
-/* CHART */
-.chart-container{position:relative}canvas{max-height:250px}
-/* FILTER */
-.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
-.filter-bar select,.filter-bar input{padding:7px 11px;border:1px solid var(--border);border-radius:6px;font-family:var(--f);font-size:12px;color:var(--text2);background:var(--surface)}
-.filter-bar select:focus,.filter-bar input:focus{outline:none;border-color:var(--blue)}
-.filter-count{font-size:12px;color:var(--text3);margin-left:auto;font-family:var(--m)}
-/* BANNER */
-.banner{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:6px;font-size:12.5px;margin-bottom:16px}
-.banner.info{background:var(--blue-l);color:var(--blue);border:1px solid #b3ccf5}
-.banner.warn{background:var(--amber-l);color:var(--amber);border:1px solid #fcd34d}
-.banner.success{background:var(--green-l);color:var(--green);border:1px solid #6ee7b7}
-/* SUB TABS */
-.sub-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px}
-.sub-tab{padding:9px 18px;border:none;background:none;cursor:pointer;font-family:var(--f);font-size:13px;font-weight:500;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
-.sub-tab:hover{color:var(--text)}.sub-tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
-.page-header{margin-bottom:22px}.page-title{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-.4px}.page-sub{font-size:13px;color:var(--text3);margin-top:3px}
-@keyframes spin{to{transform:rotate(360deg)}}.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
-</style>
-</head>
-<body>
-<div class="topbar">
-  <div class="tl"><div class="logo">Centro<span>Estant</span></div></div>
-  <div class="tc">
-    <div class="topbar-title">SGI · Gestión de No Conformidades</div>
-    <div class="conn-badge"><div class="cdot load" id="cdot"></div><span id="ctxt">Conectando…</span></div>
-  </div>
-  <div class="tr">
-    <div class="top-date" id="topDate"></div>
-    <button class="btn-sync" onclick="syncData()"><span id="syncIcon">↻</span> Sincronizar</button>
-  </div>
-</div>
-<div class="app-body">
-<nav class="sidebar">
-  <div class="sb-sec">
-    <div class="sb-lbl">Principal</div>
-    <button class="nav-item active" onclick="nav('dashboard')" data-view="dashboard"><span class="nav-icon">📊</span> Dashboard</button>
-    <button class="nav-item" onclick="nav('analisis')" data-view="analisis"><span class="nav-icon">🔍</span> Análisis y KPIs</button>
-  </div>
-  <div class="sb-sec">
-    <div class="sb-lbl">Gestión</div>
-    <button class="nav-item" onclick="nav('informes')" data-view="informes"><span class="nav-icon">📋</span> Todos los Informes<span class="nav-badge" id="nav-total">0</span></button>
-    <button class="nav-item" onclick="nav('cargar')" data-view="cargar"><span class="nav-icon">⬆</span> Cargar Informe</button>
-  </div>
-  <div class="sb-sec">
-    <div class="sb-lbl">Sistema</div>
-    <button class="nav-item" onclick="nav('config')" data-view="config"><span class="nav-icon">⚙</span> Configuración</button>
-  </div>
-  <div class="sb-footer">
-    <div class="sb-stat"><span class="ss-lbl">Total NC</span><span class="ss-val" id="sb-total">—</span></div>
-    <div class="sb-stat"><span class="ss-lbl">Impacto Alto</span><span class="ss-val" id="sb-alto" style="color:var(--red)">—</span></div>
-    <div class="sb-stat"><span class="ss-lbl">Sin cerrar</span><span class="ss-val" id="sb-ab" style="color:var(--amber)">—</span></div>
-  </div>
-</nav>
-<main class="main">
+// ============================================================
+// CENTRO ESTANT · SGI · Backend Google Apps Script
+// Versión simplificada - máxima compatibilidad
+// ============================================================
 
-<!-- DASHBOARD -->
-<div id="view-dashboard" class="view active">
-  <div class="page-header"><div class="page-title">Dashboard General</div><div class="page-sub" id="dash-sub">Cargando…</div></div>
-  <div class="g6 mb4">
-    <div class="card kpi blue"><div class="kpi-s"></div><div class="kpi-lbl">Total NC</div><div class="kpi-val" id="k-total">—</div><div class="kpi-ftr">Registradas</div><div class="kpi-ico">📋</div></div>
-    <div class="card kpi red"><div class="kpi-s"></div><div class="kpi-lbl">Alto Impacto</div><div class="kpi-val" id="k-alto">—</div><div class="kpi-ftr">Críticas</div><div class="kpi-ico">🔴</div></div>
-    <div class="card kpi amber"><div class="kpi-s"></div><div class="kpi-lbl">Abiertas</div><div class="kpi-val" id="k-ab">—</div><div class="kpi-ftr">Sin cerrar</div><div class="kpi-ico">🔓</div></div>
-    <div class="card kpi green"><div class="kpi-s"></div><div class="kpi-lbl">Cerradas</div><div class="kpi-val" id="k-cerr">—</div><div class="kpi-ftr">Resueltas</div><div class="kpi-ico">✅</div></div>
-    <div class="card kpi purple"><div class="kpi-s"></div><div class="kpi-lbl">Recurrentes</div><div class="kpi-val" id="k-recur">—</div><div class="kpi-ftr">Mismo problema</div><div class="kpi-ico">🔁</div></div>
-    <div class="card kpi teal"><div class="kpi-s"></div><div class="kpi-lbl">Con Parada</div><div class="kpi-val" id="k-par">—</div><div class="kpi-ftr">Paran prod.</div><div class="kpi-ico">⛔</div></div>
-  </div>
-  <div class="g4 mb4">
-    <div class="card kpi green"><div class="kpi-s"></div><div class="kpi-lbl">Tasa Cierre</div><div class="kpi-val" id="k-cierre">—</div><div class="kpi-ftr">Meta: &gt;60%</div></div>
-    <div class="card kpi red"><div class="kpi-s"></div><div class="kpi-lbl">% Planificación</div><div class="kpi-val" id="k-plan">—</div><div class="kpi-ftr">Causa sistémica</div></div>
-    <div class="card kpi amber"><div class="kpi-s"></div><div class="kpi-lbl">% Recurrencia</div><div class="kpi-val" id="k-rp">—</div><div class="kpi-ftr">Meta: &lt;10%</div></div>
-    <div class="card kpi purple"><div class="kpi-s"></div><div class="kpi-lbl">Piezas Afect.</div><div class="kpi-val" id="k-pzs">—</div><div class="kpi-ftr">Fuera de spec</div></div>
-  </div>
-  <div class="g3 mb4">
-    <div class="card"><div class="card-hdr"><div class="card-title">NC por Tipo</div><div class="card-sub" id="tipo-sub"></div></div><div class="card-body chart-container"><canvas id="cTipo"></canvas></div></div>
-    <div class="card"><div class="card-hdr"><div class="card-title">NC por Causa Raíz (5M)</div></div><div class="card-body chart-container"><canvas id="cCausa"></canvas></div></div>
-    <div class="card"><div class="card-hdr"><div class="card-title">Evolución Mensual</div></div><div class="card-body chart-container"><canvas id="cMes"></canvas></div></div>
-  </div>
-  <div class="g2">
-    <div class="card"><div class="card-hdr"><div class="card-title">NC por Sector</div></div><div class="card-body chart-container"><canvas id="cSect"></canvas></div></div>
-    <div class="card"><div class="card-hdr"><div class="card-title">Estado de Acciones</div></div><div class="card-body chart-container"><canvas id="cEst"></canvas></div></div>
-  </div>
-</div>
-
-<!-- ANÁLISIS -->
-<div id="view-analisis" class="view">
-  <div class="page-header"><div class="page-title">Análisis y KPIs</div><div class="page-sub">Vista profesional de producción</div></div>
-  <div class="sub-tabs">
-    <button class="sub-tab active" onclick="subTab('si')" data-st="si">💡 Hallazgos</button>
-    <button class="sub-tab" onclick="subTab('sp')" data-st="sp">📊 Pareto</button>
-    <button class="sub-tab" onclick="subTab('sk')" data-st="sk">📈 KPIs</button>
-    <button class="sub-tab" onclick="subTab('st')" data-st="st">📉 Tendencias</button>
-  </div>
-  <div id="si" class="sp-panel"><div id="insightsBox" class="mb4"></div></div>
-  <div id="sp" class="sp-panel" style="display:none">
-    <div class="g2 mb4">
-      <div class="card"><div class="card-hdr"><div class="card-title">Pareto — Causas Raíz</div><div class="card-sub">80/20</div></div><div class="card-body" id="pCausas"></div></div>
-      <div class="card"><div class="card-hdr"><div class="card-title">Pareto — Sectores</div></div><div class="card-body" id="pSect"></div></div>
-    </div>
-    <div class="g2">
-      <div class="card"><div class="card-hdr"><div class="card-title">Pareto — Tipo NC</div></div><div class="card-body" id="pTipo"></div></div>
-      <div class="card"><div class="card-hdr"><div class="card-title">Pareto — Procesos</div></div><div class="card-body" id="pProc"></div></div>
-    </div>
-  </div>
-  <div id="sk" class="sp-panel" style="display:none">
-    <div class="g2 mb4">
-      <div class="card"><div class="card-hdr"><div class="card-title">KPIs de Volumen</div></div><div class="card-body tbl-wrap"><table><thead><tr><th>Indicador</th><th>Valor</th><th>%</th><th>Estado</th></tr></thead><tbody id="kv"></tbody></table></div></div>
-      <div class="card"><div class="card-hdr"><div class="card-title">KPIs de Impacto</div></div><div class="card-body tbl-wrap"><table><thead><tr><th>Indicador</th><th>Valor</th><th>%</th><th>Estado</th></tr></thead><tbody id="ki"></tbody></table></div></div>
-    </div>
-    <div class="g2 mb4">
-      <div class="card"><div class="card-hdr"><div class="card-title">KPIs de Gestión</div></div><div class="card-body tbl-wrap"><table><thead><tr><th>Indicador</th><th>Valor</th><th>%</th><th>Estado</th></tr></thead><tbody id="kg"></tbody></table></div></div>
-      <div class="card"><div class="card-hdr"><div class="card-title">KPIs de Causa</div></div><div class="card-body tbl-wrap"><table><thead><tr><th>Indicador</th><th>Valor</th><th>%</th><th>Estado</th></tr></thead><tbody id="kc"></tbody></table></div></div>
-    </div>
-    <div class="card"><div class="card-hdr"><div class="card-title">KPIs de Eficiencia y Recursos</div></div><div class="card-body tbl-wrap"><table><thead><tr><th>Indicador</th><th>Valor</th><th>Proporción</th><th>Estado</th></tr></thead><tbody id="ke"></tbody></table></div></div>
-  </div>
-  <div id="st" class="sp-panel" style="display:none">
-    <div class="card mb4"><div class="card-hdr"><div class="card-title">NC por Semana</div></div><div class="card-body chart-container"><canvas id="cSem" style="max-height:190px"></canvas></div></div>
-    <div class="g2">
-      <div class="card"><div class="card-hdr"><div class="card-title">Impacto por Mes</div></div><div class="card-body chart-container"><canvas id="cIM"></canvas></div></div>
-      <div class="card"><div class="card-hdr"><div class="card-title">Tipo por Mes</div></div><div class="card-body chart-container"><canvas id="cTM"></canvas></div></div>
-    </div>
-  </div>
-</div>
-
-<!-- INFORMES -->
-<div id="view-informes" class="view">
-  <div class="page-header"><div class="page-title">Todos los Informes</div><div class="page-sub">Visualizá, editá o eliminá cualquier NC</div></div>
-  <div class="filter-bar">
-    <input id="fQ" placeholder="🔍 Buscar…" oninput="renderTable()" style="width:200px">
-    <select id="fSec" onchange="renderTable()"><option value="">Todos los sectores</option></select>
-    <select id="fTip" onchange="renderTable()"><option value="">Todos los tipos</option></select>
-    <select id="fImp" onchange="renderTable()"><option value="">Todos los impactos</option></select>
-    <select id="fEst" onchange="renderTable()"><option value="">Todos los estados</option></select>
-    <select id="fMes" onchange="renderTable()"><option value="">Todos los meses</option></select>
-    <span class="filter-count" id="fCnt">0 resultados</span>
-    <button class="btn btn-g btn-sm" onclick="exportCSV()">⬇ CSV</button>
-  </div>
-  <div class="card"><div class="tbl-wrap" id="tableWrap"></div></div>
-</div>
-
-<!-- CARGAR -->
-<div id="view-cargar" class="view">
-  <div class="page-header"><div class="page-title">Cargar Informe de NC</div><div class="page-sub">Subí el HTML o PDF — se extraen los datos automáticamente</div></div>
-  <div class="banner success">✅ <strong>Extracción automática sin IA externa</strong> — Los informes se leen localmente en tu navegador. Sin claves, sin costos, sin límites.</div>
-  <div class="banner info" id="storeBanner">☁ <strong>Google Sheets conectado</strong> — Datos accesibles desde cualquier dispositivo.</div>
-  <div class="banner warn" id="localBanner" style="display:none">⚠ <strong>Sin Google Sheets</strong> — Configurá la URL en ⚙ Configuración.</div>
-  <div class="g2" style="gap:20px">
-    <div style="display:flex;flex-direction:column;gap:14px">
-      <div class="card">
-        <div class="card-hdr"><div class="card-title">Subir archivos</div><div class="card-sub">HTML o PDF · varios a la vez</div></div>
-        <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
-          <div class="dropzone" id="dropzone">
-            <input type="file" id="fileInput" accept=".html,.htm,.pdf,.txt" multiple>
-            <span class="dz-icon">📋</span>
-            <div class="dz-title">Arrastrá o hacé clic para seleccionar</div>
-            <div class="dz-sub">HTML · PDF · sin clave API · gratis</div>
-          </div>
-          <div class="file-list" id="fileList"></div>
-          <button class="btn btn-p btn-full" id="btnProc" disabled><span id="bIcon">⚡</span><span id="bTxt">Procesar archivos</span></button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-hdr"><div class="card-title">Log del sistema</div></div>
-        <div class="card-body" style="padding:12px"><div class="log-box" id="logBox"><div class="ll info">▶ Sistema listo. Extracción local activada.</div></div></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-hdr"><div class="card-title">Carga manual</div><div class="card-sub">Si no tenés el archivo</div></div>
-      <div class="card-body">
-        <div class="form-grid">
-          <div class="fg"><label>Fecha</label><input id="fm-fecha" placeholder="DD/MM/AAAA"></div>
-          <div class="fg"><label>Mes</label><select id="fm-mes"><option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option><option>Julio</option><option>Agosto</option><option>Septiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option></select></div>
-          <div class="fg"><label>Sector</label><input id="fm-sec"></div>
-          <div class="fg"><label>Proceso</label><input id="fm-proc"></div>
-          <div class="fg"><label>Tipo NC</label><select id="fm-tipo"><option>Error de planificación</option><option>Falla de equipo</option><option>Faltante de material</option><option>Defecto de proceso / calidad</option><option>Defecto de insumo/proveedor</option><option>Condición insegura</option><option>Falla operativa múltiple</option><option>Error de proceso</option><option>Otro</option></select></div>
-          <div class="fg"><label>Impacto</label><select id="fm-imp"><option>Alto</option><option selected>Medio</option><option>Bajo</option></select></div>
-          <div class="fg"><label>Retrabajo</label><select id="fm-ret"><option value="S">Sí</option><option value="N" selected>No</option></select></div>
-          <div class="fg"><label>Parada</label><select id="fm-par"><option value="S">Sí</option><option value="N" selected>No</option></select></div>
-          <div class="fg"><label>Recurrente</label><select id="fm-rec"><option value="S">Sí</option><option value="N" selected>No</option></select></div>
-          <div class="fg"><label>Piezas afect.</label><input id="fm-pzs" type="number" value="0" min="0"></div>
-          <div class="fg"><label>Producto/Equipo</label><input id="fm-prod"></div>
-          <div class="fg"><label>Estado</label><select id="fm-est"><option>Pendiente</option><option>En curso</option><option>Cerrada</option></select></div>
-          <div class="fg full"><label>Descripción</label><textarea id="fm-desc"></textarea></div>
-          <div class="fg full"><label>Causa raíz</label><textarea id="fm-causa"></textarea></div>
-          <div class="fg full"><label>Categoría causa (5M)</label><select id="fm-ccat" style="padding:8px 11px;border:1px solid var(--border);border-radius:6px;font-family:var(--f);font-size:13px;background:var(--bg)"><option>Planificación / Métodos</option><option>Máquinas / Métodos</option><option>Mano de obra / Métodos</option><option>Materiales / Métodos</option><option>Medio ambiente / Métodos</option><option>Máquinas / Materiales</option><option>Planificación / Logística</option><option>Máquinas / Planificación / Métodos</option></select></div>
-          <div class="fg full"><label>Acción inmediata</label><textarea id="fm-ai"></textarea></div>
-          <div class="fg full"><label>Acción correctiva</label><textarea id="fm-ac"></textarea></div>
-          <div class="fg full"><label>Acción preventiva</label><textarea id="fm-ap"></textarea></div>
-          <div class="fg full"><label>Observaciones</label><input id="fm-obs"></div>
-        </div>
-        <button class="btn btn-s btn-full mt4" onclick="addManual()">+ Agregar NC al sistema</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- CONFIG -->
-<div id="view-config" class="view">
-  <div class="page-header"><div class="page-title">Configuración</div><div class="page-sub">Conectá la plataforma con Google Sheets</div></div>
-  <div class="cfg-card">
-    <h4>☁ Paso 1 — Crear el Google Sheet y el Apps Script</h4>
-    <p>Seguí estos pasos una sola vez.</p>
-    <ol class="step-list">
-      <li>Abrí <strong>sheets.google.com</strong> y creá una hoja nueva llamada "NC Centro Estant".</li>
-      <li>En esa hoja, hacé clic en <strong>Extensiones → Apps Script</strong>.</li>
-      <li>Borrá todo el código y pegá el contenido del archivo <strong>PASO1_AppScript_Backend_v2.gs</strong>.</li>
-      <li>Guardá el proyecto (Ctrl+S). Nombre: "NC Backend".</li>
-      <li>Hacé clic en <strong>Implementar → Nueva implementación → App web</strong>.</li>
-      <li>Ejecutar como: <strong>Yo</strong>. Acceso: <strong>Cualquier persona</strong>. Implementar.</li>
-      <li>Autorizá los permisos y copiá la URL generada.</li>
-    </ol>
-  </div>
-  <div class="cfg-card">
-    <h4>🔗 Paso 2 — Conectar con esta plataforma</h4>
-    <p>Pegá la URL del Apps Script y hacé clic en Conectar.</p>
-    <div style="display:flex;gap:10px;margin-top:10px">
-      <input id="cfgUrl" type="text" placeholder="https://script.google.com/macros/s/…/exec" style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-family:var(--m);font-size:12px">
-      <button class="btn btn-p" onclick="saveConfig()">Conectar</button>
-      <button class="btn btn-g" onclick="testConn()">Probar</button>
-    </div>
-    <div id="cfgStatus" style="margin-top:10px;font-size:12px;color:var(--text3)"></div>
-  </div>
-  <div class="cfg-card">
-    <h4>📥 Paso 3 (opcional) — Importar NC históricas</h4>
-    <p>Importá las NC N°2 a N°16 que ya tenías cargadas.</p>
-    <button class="btn btn-g" onclick="importHist()">📦 Importar NC históricas</button>
-  </div>
-  <div class="cfg-card">
-    <h4>ℹ Estado de conexión</h4>
-    <div id="cfgInfo" style="font-size:12px;color:var(--text2);line-height:1.8">Cargando…</div>
-  </div>
-</div>
-
-</main>
-</div>
-
-<!-- MODAL -->
-<div class="overlay" id="overlay">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div><h3 id="mTitle">Revisá los datos extraídos</h3><p id="mSub">Podés editar cualquier campo antes de confirmar</p></div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="form-grid" id="mGrid"></div>
-    <div style="display:flex;gap:10px;margin-top:20px">
-      <button class="btn btn-s" style="flex:1" id="btnConfirm">✓ Confirmar y guardar</button>
-      <button class="btn btn-g" onclick="closeModal()">Cancelar</button>
-    </div>
-  </div>
-</div>
-
-<script>
-// ═══════════════════════════════════════════
-// CONFIG & STATE
-// ═══════════════════════════════════════════
-const CK = 'ce_nc_v5';
-let CFG = { url: localStorage.getItem(CK+'_url')||'', connected: false };
-let NC = [];
-let pendFiles = [], processing = false, pendingNC = null, editingId = null;
-let sortF = 'id', sortD = -1;
-
-// Setup PDF.js worker
-if (window['pdfjs-dist/build/pdf']) {
-  window['pdfjs-dist/build/pdf'].GlobalWorkerOptions.workerSrc =
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-}
-
-const HIST = [
-  {fecha:"06/01/2026",mes:"Enero",sector:"Mantenimiento",proceso:"Mantenimiento equipo",tipo:"Falla de equipo",descripcion:"Rotura carro portahorquillas autoelevador Mitsubishi – grietas en ojales de soporte",producto:"Autoelevador Mitsubishi",causa_raiz:"Maniobras bruscas al descargar scrap + falta mantenimiento preventivo",causa_cat:"Máquinas / Métodos",piezas_afectadas:0,retrabajo:"N",parada_produccion:"S",impacto:"Alto",recurrente:"N",accion_inmediata:"Refuerzo provisional con soldadura",accion_correctiva:"Reemplazar carro portahorquillas",accion_preventiva:"Plan mantenimiento preventivo + capacitación",estado:"Pendiente",observaciones:"Riesgo de accidente grave"},
-  {fecha:"19/01/2026",mes:"Enero",sector:"Pegado",proceso:"Recepción materiales",tipo:"Defecto de insumo/proveedor",descripcion:"Tableros melamina blanca con superficie porosa/rugosa – defecto de proveedor",producto:"Tableros melamina blanca",causa_raiz:"Proceso laminado deficiente en proveedor + sin inspección de ingreso",causa_cat:"Materiales / Métodos",piezas_afectadas:0,retrabajo:"S",parada_produccion:"N",impacto:"Medio",recurrente:"N",accion_inmediata:"Segregar placas afectadas",accion_correctiva:"Reclamo formal a proveedor",accion_preventiva:"Protocolo de inspección de ingreso",estado:"Pendiente",observaciones:""},
-  {fecha:"19/01/2026",mes:"Enero",sector:"Agujereado / Armado",proceso:"Maquinado – perforación",tipo:"Error de proceso",descripcion:"Perforaciones a 283 mm en lugar de 383 mm en lateral B DIS6 (diferencia 100 mm)",producto:"Mueble DIS6 lateral B",causa_raiz:"Mala lectura de plano por dos maquinistas + sin doble control",causa_cat:"Mano de obra / Métodos",piezas_afectadas:2,retrabajo:"S",parada_produccion:"N",impacto:"Medio",recurrente:"N",accion_inmediata:"Re-perforar piezas; verificar con nivel",accion_correctiva:"Reentrenar operarios",accion_preventiva:"Protocolo doble verificación",estado:"Pendiente",observaciones:"Piezas salvadas"},
-  {fecha:"14/01/2026",mes:"Enero",sector:"Logística / Recepción",proceso:"Recepción materiales",tipo:"Defecto de insumo/proveedor",descripcion:"468 placas melamina desplazadas en camión Madergold – sunchos reventados",producto:"MF Paraiso 15mm",causa_raiz:"Amarre deficiente del proveedor",causa_cat:"Materiales / Métodos",piezas_afectadas:0,retrabajo:"N",parada_produccion:"S",impacto:"Alto",recurrente:"N",accion_inmediata:"Rechazar descarga; devolver camión",accion_correctiva:"Notificación formal a proveedor",accion_preventiva:"Exigir control de estibado en origen",estado:"Pendiente",observaciones:""},
-  {fecha:"27/03/2026",mes:"Marzo",sector:"Corte / Pegado / Armado",proceso:"Planificación",tipo:"Error de planificación",descripcion:"Código 'PA' ambiguo – CME120 usó materiales distintos entre sectores",producto:"CME120",causa_raiz:"Codificación ambigua + sin verificación cruzada",causa_cat:"Planificación / Métodos",piezas_afectadas:0,retrabajo:"S",parada_produccion:"N",impacto:"Medio",recurrente:"N",accion_inmediata:"Aclarar material correcto a todos los sectores",accion_correctiva:"Actualizar objetivo diario",accion_preventiva:"Nomenclatura estándar de materiales",estado:"Pendiente",observaciones:"NC 100% planificación"},
-  {fecha:"Abril 2026",mes:"Abril",sector:"Corte",proceso:"Planificación / Corte",tipo:"Error de planificación",descripcion:"Cantidades a cortar BH132 no coinciden con reales – G1 cortó 35/36 antes de detectar",producto:"BH132",causa_raiz:"Carga incorrecta de datos + sin verificación previa",causa_cat:"Planificación / Métodos",piezas_afectadas:0,retrabajo:"S",parada_produccion:"N",impacto:"Medio",recurrente:"S",accion_inmediata:"Corrección manual en hoja de ruta",accion_correctiva:"Control cruzado antes de iniciar",accion_preventiva:"Verificación obligatoria de cantidades",estado:"Pendiente",observaciones:"1ª de 3 reiteraciones"},
-  {fecha:"Abril 2026",mes:"Abril",sector:"Corte",proceso:"Planificación / Corte",tipo:"Error de planificación",descripcion:"Cantidades a cortar BH132 no coinciden con reales (2ª reiteración)",producto:"BH132",causa_raiz:"Carga incorrecta de datos + sin verificación previa",causa_cat:"Planificación / Métodos",piezas_afectadas:0,retrabajo:"S",parada_produccion:"N",impacto:"Medio",recurrente:"S",accion_inmediata:"Corrección manual",accion_correctiva:"Control cruzado",accion_preventiva:"Verificación obligatoria",estado:"Pendiente",observaciones:"2ª reiteración"},
-  {fecha:"Abril 2026",mes:"Abril",sector:"Corte",proceso:"Planificación / Corte",tipo:"Error de planificación",descripcion:"Cantidades a cortar BH132 no coinciden con reales (3ª reiteración)",producto:"BH132",causa_raiz:"Carga incorrecta de datos + sin verificación previa",causa_cat:"Planificación / Métodos",piezas_afectadas:0,retrabajo:"S",parada_produccion:"N",impacto:"Medio",recurrente:"S",accion_inmediata:"Corrección manual",accion_correctiva:"Control cruzado",accion_preventiva:"Verificación obligatoria",estado:"Pendiente",observaciones:"3ª reiteración – patrón sistémico"},
-  {fecha:"Abril 2026",mes:"Abril",sector:"Depósito / Logística",proceso:"Almacenamiento",tipo:"Condición insegura",descripcion:"Base de placas deformada con inclinación visible; film roto; desnivel en piso",producto:"Placas en almacén",causa_raiz:"Base en mal estado + sin control de estabilidad",causa_cat:"Medio ambiente / Métodos",piezas_afectadas:0,retrabajo:"N",parada_produccion:"N",impacto:"Alto",recurrente:"N",accion_inmediata:"Rearmar base; reponer film",accion_correctiva:"Corregir desnivel de piso",accion_preventiva:"Controles de estabilidad periódicos",estado:"Pendiente",observaciones:"Riesgo ergonómico"},
-  {fecha:"Abril 2026",mes:"Abril",sector:"Producción – Etiquetado",proceso:"Etiquetado automático",tipo:"Falla de equipo",descripcion:"Etiquetas duplicadas, desalineadas o sin adherencia – intervención servicio técnico",producto:"Máquina etiquetado automático",causa_raiz:"Suciedad placa avance + mala ubicación rollo + ribbon baja calidad",causa_cat:"Máquinas / Materiales",piezas_afectadas:0,retrabajo:"S",parada_produccion:"N",impacto:"Medio",recurrente:"N",accion_inmediata:"Intervención servicio técnico",accion_correctiva:"Limpieza; reubicación del rollo",accion_preventiva:"Mantenimiento preventivo cada 2 días",estado:"Pendiente",observaciones:""},
-  {fecha:"Abril 2026",mes:"Abril",sector:"Producción / Logística",proceso:"Abastecimiento",tipo:"Faltante de material",descripcion:"Faltante de 11 planchas de telgopor para OP MLF 31636",producto:"Telgopor – OP MLF 31636",causa_raiz:"Falla en planificación de materiales + sin control de stock",causa_cat:"Planificación / Logística",piezas_afectadas:0,retrabajo:"N",parada_produccion:"S",impacto:"Medio",recurrente:"S",accion_inmediata:"Confirmar ingreso del material",accion_correctiva:"Verificar disponibilidad antes de cada orden",accion_preventiva:"Stock de seguridad; alertas de faltantes",estado:"Pendiente",observaciones:""},
-  {fecha:"Abril 2026",mes:"Abril",sector:"Planificación",proceso:"Objetivos diarios",tipo:"Error de planificación",descripcion:"Objetivo indicaba 1068 uds vs. suma real 478; DIS4 cargado con 1 ud en lugar de 41",producto:"DIS4 / Planilla diaria",causa_raiz:"Error carga manual + sin validación de totales",causa_cat:"Planificación / Métodos",piezas_afectadas:0,retrabajo:"N",parada_produccion:"N",impacto:"Medio",recurrente:"N",accion_inmediata:"Corregir carga de datos",accion_correctiva:"Validar suma antes de publicar",accion_preventiva:"Control cruzado previo",estado:"Pendiente",observaciones:""},
-  {fecha:"Abril 2026",mes:"Abril",sector:"Planificación / Corte",proceso:"Hoja de ruta",tipo:"Error de planificación",descripcion:"Hoja de ruta indica 548×115 mm; plano correcto indica 548×95 mm (diferencia 20 mm)",producto:"B8018",causa_raiz:"Error carga manual en hoja de ruta + sin validación contra plano",causa_cat:"Planificación / Métodos",piezas_afectadas:0,retrabajo:"S",parada_produccion:"N",impacto:"Medio",recurrente:"N",accion_inmediata:"Corregir hoja de ruta",accion_correctiva:"Validación obligatoria vs. plano",accion_preventiva:"Control cruzado planificación–corte",estado:"Pendiente",observaciones:""},
-  {fecha:"Abril 2026",mes:"Abril",sector:"Corte / Producción",proceso:"Seccionado – corte",tipo:"Defecto de proceso / calidad",descripcion:"92 piezas TC100BL cortadas a 285 mm en lugar de 289 mm (desvío 4 mm)",producto:"TC100BL",causa_raiz:"Configuración incorrecta de máquina + sin control dimensional",causa_cat:"Máquinas / Métodos",piezas_afectadas:92,retrabajo:"S",parada_produccion:"N",impacto:"Alto",recurrente:"N",accion_inmediata:"Segregar lote 92 piezas",accion_correctiva:"Revisar configuración de corte",accion_preventiva:"Control dimensional en primeras piezas",estado:"Pendiente",observaciones:"Falta first-off check"},
-  {fecha:"Abril 2026",mes:"Abril",sector:"Producción / Planta",proceso:"Corte, Perforado, Transferencia",tipo:"Falla operativa múltiple",descripcion:"KDT868 falla + faltante telgopor + parada G3 + falla pulsadores + rotura mecha",producto:"KDT868 / G3 / Telgopor",causa_raiz:"Falta mantenimiento preventivo + deficiencias abastecimiento",causa_cat:"Máquinas / Planificación / Métodos",piezas_afectadas:0,retrabajo:"N",parada_produccion:"S",impacto:"Alto",recurrente:"S",accion_inmediata:"Reponer mecha; comunicar fallas",accion_correctiva:"Plan mantenimiento preventivo",accion_preventiva:"Protocolos respuesta ante fallas",estado:"Pendiente",observaciones:"5 eventos simultáneos"},
+var SHEET_NAME = "NC_Database";
+var HEADERS = [
+  "id", "fecha", "mes", "año", "semana", "sector", "proceso", "tipo",
+  "descripcion", "producto", "causa_raiz", "causa_cat", "impacto",
+  "retrabajo", "parada_produccion", "recurrente", "piezas_afectadas",
+  "accion_inmediata", "accion_correctiva", "accion_preventiva",
+  "estado", "observaciones", "fecha_carga", "nombre_archivo"
 ];
 
-// ═══════════════════════════════════════════
-// API GOOGLE SHEETS
-// ═══════════════════════════════════════════
-async function apiGet(action) {
-  if (!CFG.url) throw new Error('Sin URL configurada');
-  const r = await fetch(CFG.url + '?action=' + action + '&t=' + Date.now(), { method: 'GET', redirect: 'follow' });
-  const j = JSON.parse(await r.text());
-  if (j.status === 'error') throw new Error(j.data?.error || 'Error API');
-  return j.data;
+// ─────────────────────────────────────────────
+// Obtener o crear la hoja de datos
+// ─────────────────────────────────────────────
+function getSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(SHEET_NAME);
+  
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_NAME);
+    sheet.appendRow(HEADERS);
+    var headerRange = sheet.getRange(1, 1, 1, HEADERS.length);
+    headerRange.setBackground("#1a56db");
+    headerRange.setFontColor("#ffffff");
+    headerRange.setFontWeight("bold");
+    sheet.setFrozenRows(1);
+  }
+  
+  return sheet;
 }
 
-async function apiPost(body) {
-  if (!CFG.url) throw new Error('Sin URL configurada');
-  const r = await fetch(CFG.url, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) });
-  const j = JSON.parse(await r.text());
-  if (j.status === 'error') throw new Error(j.data?.error || 'Error API');
-  return j.data;
+// ─────────────────────────────────────────────
+// Obtener todos los registros
+// ─────────────────────────────────────────────
+function getAllRecords() {
+  var sheet = getSheet();
+  var lastRow = sheet.getLastRow();
+  
+  if (lastRow <= 1) {
+    return [];
+  }
+  
+  var data = sheet.getRange(2, 1, lastRow - 1, HEADERS.length).getValues();
+  var records = [];
+  
+  for (var i = 0; i < data.length; i++) {
+    var row = data[i];
+    var record = {};
+    record._row = i + 2;
+    
+    for (var j = 0; j < HEADERS.length; j++) {
+      var val = row[j];
+      record[HEADERS[j]] = (val !== null && val !== undefined) ? String(val) : "";
+    }
+    
+    records.push(record);
+  }
+  
+  return records;
 }
 
-async function syncData() {
-  if (!CFG.url) { setConn('off','Sin configurar'); return; }
-  setConn('load','Sincronizando…');
+// ─────────────────────────────────────────────
+// Crear respuesta JSON
+// ─────────────────────────────────────────────
+function makeJSON(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ─────────────────────────────────────────────
+// GET - leer datos
+// ─────────────────────────────────────────────
+function doGet(e) {
   try {
-    const data = await apiGet('getAll');
-    NC = Array.isArray(data) ? data.map(cleanR) : [];
-    setConn('on', NC.length + ' NC · ' + new Date().toLocaleTimeString('es-AR'));
-    refreshAll();
-    log('✓ ' + NC.length + ' registros desde Google Sheets', 'ok');
-  } catch(e) {
-    setConn('off','Error de conexión');
-    log('✗ Error sync: ' + e.message, 'err');
+    var action = "getAll";
+    
+    if (e && e.parameter && e.parameter.action) {
+      action = e.parameter.action;
+    }
+    
+    if (action === "ping") {
+      var records = getAllRecords();
+      return makeJSON({
+        status: "ok",
+        data: {
+          message: "Centro Estant NC Platform conectado",
+          time: new Date().toISOString(),
+          records: records.length
+        }
+      });
+    }
+    
+    if (action === "getAll") {
+      var allRecords = getAllRecords();
+      var clean = [];
+      
+      for (var i = 0; i < allRecords.length; i++) {
+        var r = allRecords[i];
+        var obj = {};
+        for (var j = 0; j < HEADERS.length; j++) {
+          obj[HEADERS[j]] = r[HEADERS[j]] || "";
+        }
+        clean.push(obj);
+      }
+      
+      return makeJSON({ status: "ok", data: clean });
+    }
+    
+    return makeJSON({ status: "error", data: { error: "Accion no reconocida" } });
+    
+  } catch (err) {
+    return makeJSON({ status: "error", data: { error: err.toString() } });
   }
 }
 
-function cleanR(r) {
-  return { id:parseInt(r.id)||0, fecha:r.fecha||'', mes:r.mes||'', año:r.año||'', semana:r.semana||'', sector:r.sector||'', proceso:r.proceso||'', tipo:r.tipo||'', descripcion:r.descripcion||'', producto:r.producto||'', causa_raiz:r.causa_raiz||'', causa_cat:r.causa_cat||'', impacto:r.impacto||'', retrabajo:r.retrabajo||'N', parada_produccion:r.parada_produccion||'N', recurrente:r.recurrente||'N', piezas_afectadas:parseInt(r.piezas_afectadas)||0, accion_inmediata:r.accion_inmediata||'', accion_correctiva:r.accion_correctiva||'', accion_preventiva:r.accion_preventiva||'', estado:r.estado||'Pendiente', observaciones:r.observaciones||'', fecha_carga:r.fecha_carga||'', nombre_archivo:r.nombre_archivo||'' };
+// ─────────────────────────────────────────────
+// POST - escribir datos
+// ─────────────────────────────────────────────
+function doPost(e) {
+  try {
+    var body = JSON.parse(e.postData.contents);
+    var action = body.action;
+    
+    if (action === "insert") {
+      return makeJSON(insertRecord(body.data));
+    }
+    
+    if (action === "update") {
+      return makeJSON(updateRecord(body.id, body.data));
+    }
+    
+    if (action === "delete") {
+      return makeJSON(deleteRecord(body.id));
+    }
+    
+    if (action === "bulkInsert") {
+      return makeJSON(bulkInsert(body.data));
+    }
+    
+    return makeJSON({ status: "error", data: { error: "Accion no reconocida" } });
+    
+  } catch (err) {
+    return makeJSON({ status: "error", data: { error: err.toString() } });
+  }
 }
 
-async function addNC(data) {
-  const result = await apiPost({ action:'insert', data });
-  log('✓ NC guardada (ID: ' + result.id + ')', 'ok');
-  await syncData();
-  return result;
-}
-
-async function updateNC(id, data) {
-  await apiPost({ action:'update', id, data });
-  log('✓ NC #' + id + ' actualizada', 'ok');
-  await syncData();
-}
-
-async function deleteNC(id) {
-  if (!confirm('¿Eliminar NC #' + id + '? No se puede deshacer.')) return;
-  await apiPost({ action:'delete', id });
-  log('✓ NC #' + id + ' eliminada', 'ok');
-  await syncData();
-}
-
-// ═══════════════════════════════════════════
-// NAVEGACIÓN
-// ═══════════════════════════════════════════
-function nav(view) {
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
-  document.getElementById('view-'+view)?.classList.add('active');
-  document.querySelector('[data-view="'+view+'"]')?.classList.add('active');
-  refreshAll();
-}
-
-function subTab(id) {
-  document.querySelectorAll('.sp-panel').forEach(p=>p.style.display='none');
-  document.querySelectorAll('.sub-tab').forEach(b=>b.classList.remove('active'));
-  document.getElementById(id).style.display='block';
-  document.querySelector('[data-st="'+id+'"]').classList.add('active');
-  refreshAnalisis();
-}
-
-// ═══════════════════════════════════════════
-// EXTRACCIÓN LOCAL DE TEXTO (sin IA externa)
-// ═══════════════════════════════════════════
-function nrm(t) { return (t||'').replace(/\s+/g,' ').trim(); }
-
-function exField(text, labels) {
-  for (const lbl of labels) {
-    const re = new RegExp(lbl + '[:\\s]*([^\n<]{2,150})', 'i');
-    const m = text.match(re);
-    if (m && m[1]) {
-      const v = nrm(m[1].replace(/<[^>]+>/g,'').replace(/^[:\-\s]+/,''));
-      if (v.length > 1) return v;
+// ─────────────────────────────────────────────
+// INSERTAR un registro
+// ─────────────────────────────────────────────
+function insertRecord(data) {
+  var sheet = getSheet();
+  var allRecords = getAllRecords();
+  
+  // Calcular ID
+  var maxId = 0;
+  for (var i = 0; i < allRecords.length; i++) {
+    var id = parseInt(allRecords[i].id) || 0;
+    if (id > maxId) maxId = id;
+  }
+  data.id = maxId + 1;
+  data.fecha_carga = new Date().toISOString();
+  
+  // Calcular semana y año desde la fecha
+  if (data.fecha) {
+    var parts = data.fecha.split("/");
+    if (parts.length === 3) {
+      try {
+        var d = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+        var startYear = new Date(d.getFullYear(), 0, 1);
+        var weekNum = Math.ceil(((d - startYear) / 86400000 + startYear.getDay() + 1) / 7);
+        data.semana = "S" + weekNum;
+        data.año = d.getFullYear().toString();
+      } catch(ex) {
+        data.semana = "";
+        data.año = new Date().getFullYear().toString();
+      }
     }
   }
-  return '';
+  
+  // Construir fila en el orden de HEADERS
+  var row = [];
+  for (var i = 0; i < HEADERS.length; i++) {
+    var val = data[HEADERS[i]];
+    row.push((val !== null && val !== undefined) ? val : "");
+  }
+  
+  sheet.appendRow(row);
+  
+  // Color por impacto
+  var lastRow = sheet.getLastRow();
+  var impacto = String(data.impacto || "").toLowerCase();
+  var bgColor = "#ffffff";
+  if (impacto === "alto") bgColor = "#fff0f0";
+  else if (impacto === "medio") bgColor = "#fffbe6";
+  else if (impacto === "bajo") bgColor = "#f0faf5";
+  
+  sheet.getRange(lastRow, 1, 1, HEADERS.length).setBackground(bgColor);
+  
+  return { status: "ok", data: { id: data.id, message: "NC registrada correctamente" } };
 }
 
-function exSection(text, starts, ends) {
-  for (const s of starts) {
-    const re = new RegExp(s + '[:\\.\\s]+([\\s\\S]{5,600}?)(?=' + ends.map(e=>e.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|') + '|$)', 'i');
-    const m = text.match(re);
-    if (m && m[1] && m[1].trim().length > 5) {
-      return nrm(m[1].replace(/<[^>]+>/g,' '));
+// ─────────────────────────────────────────────
+// ACTUALIZAR un registro
+// ─────────────────────────────────────────────
+function updateRecord(id, newData) {
+  var sheet = getSheet();
+  var allRecords = getAllRecords();
+  
+  var record = null;
+  for (var i = 0; i < allRecords.length; i++) {
+    if (parseInt(allRecords[i].id) === parseInt(id)) {
+      record = allRecords[i];
+      break;
     }
   }
-  return '';
-}
-
-function gMes(t) {
-  const ms = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  const tl = t.toLowerCase();
-  for (const m of ms) if (tl.includes(m)) return m[0].toUpperCase()+m.slice(1);
-  const dm = t.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-  if (dm) { const i=parseInt(dm[2])-1; if(i>=0&&i<12) return ms[i][0].toUpperCase()+ms[i].slice(1); }
-  return '';
-}
-
-function gTipo(t) {
-  const l = t.toLowerCase();
-  if (l.includes('planificaci') && (l.includes('error')||l.includes('falla')||l.includes('incorrect'))) return 'Error de planificación';
-  if (l.includes('faltante')||l.includes('falta de material')||l.includes('sin stock')) return 'Faltante de material';
-  if ((l.includes('equipo')||l.includes('máquina')||l.includes('maquina'))&&(l.includes('falla')||l.includes('rotura')||l.includes('avería'))) return 'Falla de equipo';
-  if (l.includes('calidad')||l.includes('dimensi')||l.includes('medida')||l.includes('especificaci')||l.includes('desvío')) return 'Defecto de proceso / calidad';
-  if (l.includes('proveedor')||l.includes('insumo')||l.includes('material defect')||l.includes('textura')) return 'Defecto de insumo/proveedor';
-  if (l.includes('almacenamiento')||l.includes('insegur')||l.includes('riesgo')||l.includes('accidente')) return 'Condición insegura';
-  if (l.includes('múltiple')||l.includes('multiple')||l.includes('varios eventos')||l.includes('simultaneo')) return 'Falla operativa múltiple';
-  if (l.includes('proceso')||l.includes('operaci')||l.includes('perforac')||l.includes('corte')) return 'Error de proceso';
-  return 'Otro';
-}
-
-function gCCat(t) {
-  const l = t.toLowerCase();
-  if (l.includes('planificaci')||l.includes('planeam')) return 'Planificación / Métodos';
-  if ((l.includes('máquina')||l.includes('maquina')||l.includes('equipo'))&&l.includes('material')) return 'Máquinas / Materiales';
-  if (l.includes('máquina')||l.includes('maquina')||l.includes('equipo')||l.includes('herramienta')) return 'Máquinas / Métodos';
-  if (l.includes('operario')||l.includes('personal')||l.includes('humano')||l.includes('mano de obra')||l.includes('capacit')) return 'Mano de obra / Métodos';
-  if (l.includes('material')||l.includes('insumo')||l.includes('materia prima')||l.includes('proveedor')) return 'Materiales / Métodos';
-  if (l.includes('ambiente')||l.includes('espacio')||l.includes('orden')||l.includes('limpieza')) return 'Medio ambiente / Métodos';
-  return 'Planificación / Métodos';
-}
-
-function gImpacto(t) {
-  const l = t.toLowerCase();
-  if (['accidente','lesión','grave','parada total','riesgo inminente','crítico','alto impacto'].some(w=>l.includes(w))) return 'Alto';
-  if (['menor','leve','mínimo','bajo','sin impacto significativo'].some(w=>l.includes(w))) return 'Bajo';
-  return 'Medio';
-}
-
-function extractFromText(text, filename) {
-  const clean = text
-    .replace(/<style[\s\S]*?<\/style>/gi,'')
-    .replace(/<script[\s\S]*?<\/script>/gi,'')
-    .replace(/<[^>]+>/g,' ')
-    .replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')
-    .replace(/\s+/g,' ').trim();
-
-  const fecha = exField(text, ['Fecha de detecci[oó]n','Fecha:','Fecha del hallazgo','Fecha']);
-  const mes = gMes(fecha + ' ' + clean);
-  let sector = exField(text, ['Sector:','Área:','Sector','Línea de producción']).split('\n')[0].split('.')[0];
-  let proceso = exField(text, ['Proceso:','Proceso','Línea','Operación']).split('\n')[0];
-  let producto = exField(text, ['Producto afectado:','Producto:','Equipo:','Material involucrado:','Producto','Equipo']).split('\n')[0];
-
-  let desc = exSection(clean,
-    ['2\\.?\\s*Descripci[oó]n del hallazgo','Descripci[oó]n del hallazgo','DESCRIPCI[OÓ]N DEL HALLAZGO'],
-    ['3\\.','Evidencia','Identificaci[oó]n','An[aá]lisis','Causas']
-  );
-  if (!desc) desc = exSection(clean, ['descripci[oó]n','hallazgo'], ['evidencia','causa','identificaci']);
-  if (desc.length > 200) desc = desc.slice(0,197)+'...';
-
-  let causa = exSection(clean,
-    ['6\\.?\\s*Diagn[oó]stico','Causa inm','Causa b[aá]sica','Causa raíz','CAUSAS'],
-    ['7\\.','Impacto','Recomend','Acciones']
-  );
-  if (!causa) causa = exSection(clean, ['causa','diagn[oó]stico'], ['impacto','acci[oó]n','recomend']);
-  if (causa.length > 300) causa = causa.slice(0,297)+'...';
-
-  let ai = exSection(clean, ['Acciones? inmediatas?','INMEDIATA'], ['Acciones? correctivas?','Acciones? preventivas?','Conclusi']);
-  let ac = exSection(clean, ['Acciones? correctivas?','CORRECTIVA'], ['Acciones? preventivas?','Conclusi']);
-  let ap = exSection(clean, ['Acciones? preventivas?','PREVENTIVA'], ['Conclusi','9\\.','Cierre']);
-  if(ai.length>250)ai=ai.slice(0,247)+'...';
-  if(ac.length>250)ac=ac.slice(0,247)+'...';
-  if(ap.length>250)ap=ap.slice(0,247)+'...';
-
-  let piezas = 0;
-  const pm = clean.match(/(\d+)\s*(piezas?|unidades?|placas?|tableros?)/i);
-  if (pm) piezas = parseInt(pm[1]);
-
-  const retrabajo = /retrabajo|reproceso|correcci[oó]n manual|re-perforar|nueva perforaci/i.test(clean) ? 'S' : 'N';
-  const parada = /parada|interrupci[oó]n|detenci[oó]n|detuvo|par[oó]|no se pudo continuar/i.test(clean) ? 'S' : 'N';
-  const recurrente = /reiteraci[oó]n|recurrente|segunda vez|tercera vez|nuevamente|volvió a|ya ocurri/i.test(clean) ? 'S' : 'N';
-
-  return {
-    fecha: fecha || '', mes: mes || '',
-    sector: nrm(sector) || 'Sin especificar',
-    proceso: nrm(proceso) || 'Sin especificar',
-    tipo: gTipo(clean),
-    descripcion: desc || 'Ver informe completo',
-    producto: nrm(producto) || 'Sin especificar',
-    causa_raiz: causa || 'Ver informe',
-    causa_cat: gCCat(causa || clean),
-    piezas_afectadas: piezas,
-    retrabajo, parada_produccion: parada, impacto: gImpacto(clean), recurrente,
-    accion_inmediata: ai || 'Ver informe',
-    accion_correctiva: ac || 'Ver informe',
-    accion_preventiva: ap || 'Ver informe',
-    estado: 'Pendiente', observaciones: '', nombre_archivo: filename,
-  };
-}
-
-// ═══════════════════════════════════════════
-// CARGA DE ARCHIVOS
-// ═══════════════════════════════════════════
-const dz = document.getElementById('dropzone');
-const fi = document.getElementById('fileInput');
-dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dov');});
-dz.addEventListener('dragleave',()=>dz.classList.remove('dov'));
-dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dov');addFiles(e.dataTransfer.files);});
-fi.addEventListener('change',e=>{addFiles(e.target.files);fi.value='';});
-
-function addFiles(files) {
-  [...files].forEach(f=>{
-    if(pendFiles.find(x=>x.name===f.name))return;
-    pendFiles.push(f);
-    const d=document.createElement('div');d.className='file-item';
-    const k=f.name.replace(/[^a-z0-9]/gi,'_');d.innerHTML=`<span>${f.name.endsWith('.pdf')?'📄':'📋'}</span><span class="fi-name" title="${f.name}">${f.name}</span><span class="fi-status fsp" id="fis-${k}">Pendiente</span>`;
-    document.getElementById('fileList').appendChild(d);
-  });
-  document.getElementById('btnProc').disabled=pendFiles.length===0;
-}
-
-function setFS(name,cls,lbl){const el=document.getElementById('fis-'+name.replace(/[^a-z0-9]/gi,'_'));if(el){el.className='fi-status '+cls;el.textContent=lbl;}}
-
-document.getElementById('btnProc').addEventListener('click',async()=>{
-  if(processing||!pendFiles.length)return;
-  processing=true;
-  document.getElementById('btnProc').disabled=true;
-  document.getElementById('bIcon').innerHTML='<span class="spinner"></span>';
-  document.getElementById('bTxt').textContent='Procesando…';
-  log('Procesando '+pendFiles.length+' archivo(s)…','info');
-  const q=[...pendFiles];pendFiles=[];
-  document.getElementById('fileList').innerHTML='';
-  for(const f of q)await procFile(f);
-  processing=false;
-  document.getElementById('bIcon').textContent='⚡';
-  document.getElementById('bTxt').textContent='Procesar archivos';
-  document.getElementById('btnProc').disabled=false;
-  log('Listo.','ok');
-});
-
-async function procFile(f) {
-  log('Leyendo: '+f.name,'info');setFS(f.name,'fsr','Leyendo…');
-  try {
-    let text='';
-    const isPDF=f.name.toLowerCase().endsWith('.pdf');
-    if(isPDF){log('Extrayendo texto del PDF…');text=await readPDF(f);}
-    else{text=await readText(f);}
-    if(!text||text.trim().length<10)throw new Error('Archivo vacío o ilegible.');
-    log('Extrayendo datos de '+f.name+'…');setFS(f.name,'fsr','Extrayendo…');
-    const ex=extractFromText(text,f.name);
-    log('✓ Datos extraídos de '+f.name,'ok');setFS(f.name,'fsr','Confirmando…');
-    const ok=await openConfirmModal(ex,f.name);
-    setFS(f.name,ok?'fsd':'fse',ok?'Guardado ✓':'Cancelado');
-  }catch(e){log('✗ Error en '+f.name+': '+e.message,'err');setFS(f.name,'fse','Error');}
-}
-
-function readText(file){
-  return new Promise((res,rej)=>{
-    const r=new FileReader();
-    r.onload=e=>{let t=e.target.result;if(file.name.endsWith('.html')||file.name.endsWith('.htm')){const d=document.createElement('div');d.innerHTML=t;t=d.innerText;}res(t);};
-    r.onerror=rej;r.readAsText(file,'UTF-8');
-  });
-}
-
-async function readPDF(file){
-  const pdfjsLib=window['pdfjs-dist/build/pdf'];
-  if(!pdfjsLib)throw new Error('PDF.js no cargado. Intentá con el archivo HTML.');
-  const ab=await file.arrayBuffer();
-  const pdf=await pdfjsLib.getDocument({data:ab}).promise;
-  let full='';
-  for(let i=1;i<=pdf.numPages;i++){
-    const page=await pdf.getPage(i);
-    const content=await page.getTextContent();
-    full+=content.items.map(it=>it.str).join(' ')+'\n';
+  
+  if (!record) {
+    return { status: "error", data: { error: "Registro no encontrado" } };
   }
-  return full;
-}
-
-// ═══════════════════════════════════════════
-// MODAL
-// ═══════════════════════════════════════════
-const FIELDS=[['fecha','Fecha','text'],['mes','Mes','text'],['sector','Sector','text'],['proceso','Proceso','text'],['tipo','Tipo NC','text'],['producto','Producto/Equipo','text'],['impacto','Impacto','text'],['retrabajo','Retrabajo (S/N)','text'],['parada_produccion','Parada prod. (S/N)','text'],['recurrente','Recurrente (S/N)','text'],['piezas_afectadas','Piezas afect.','number'],['descripcion','Descripción','textarea','full'],['causa_raiz','Causa raíz','textarea','full'],['causa_cat','Categoría causa','text','full'],['accion_inmediata','Acción inmediata','textarea','full'],['accion_correctiva','Acción correctiva','textarea','full'],['accion_preventiva','Acción preventiva','textarea','full'],['estado','Estado','text'],['observaciones','Observaciones','text'],['nombre_archivo','Archivo','text']];
-
-function buildFields(data){
-  return FIELDS.map(([k,lbl,t,cls])=>{
-    const full=cls==='full'?'full':'';
-    const v=data?.[k]??'';
-    const inp=t==='textarea'?`<textarea id="mf-${k}" rows="2">${v}</textarea>`:`<input id="mf-${k}" type="${t}" value="${String(v).replace(/"/g,'&quot;')}">`;
-    return `<div class="fg ${full}"><label>${lbl}</label>${inp}</div>`;
-  }).join('');
-}
-
-function openEditModal(id){
-  const r=NC.find(x=>x.id===parseInt(id));if(!r)return;
-  editingId=id;pendingNC=null;
-  document.getElementById('mTitle').textContent='✏ Editar NC #'+id;
-  document.getElementById('mSub').textContent=r.descripcion?.slice(0,80)||'';
-  document.getElementById('mGrid').innerHTML=buildFields(r);
-  document.getElementById('btnConfirm').textContent='✓ Guardar cambios';
-  document.getElementById('btnConfirm').onclick=saveEdit;
-  document.getElementById('overlay').classList.add('open');
-}
-
-async function saveEdit(){
-  const data={};
-  FIELDS.forEach(([k,,t])=>{const el=document.getElementById('mf-'+k);if(el)data[k]=el.tagName==='TEXTAREA'?el.value:(t==='number'?(parseInt(el.value)||0):el.value);});
-  closeModal();
-  try{await updateNC(editingId,data);}catch(e){log('✗ Error: '+e.message,'err');}
-}
-
-function openConfirmModal(nc,filename){
-  return new Promise(resolve=>{
-    pendingNC=nc;editingId=null;
-    document.getElementById('mTitle').textContent='📋 Datos extraídos — Revisá antes de confirmar';
-    document.getElementById('mSub').textContent='Archivo: '+filename+' · Podés editar cualquier campo';
-    document.getElementById('mGrid').innerHTML=buildFields(nc);
-    document.getElementById('btnConfirm').textContent='✓ Confirmar y guardar';
-    document.getElementById('btnConfirm').onclick=async()=>{
-      const data={};
-      FIELDS.forEach(([k,,t])=>{const el=document.getElementById('mf-'+k);if(el)data[k]=el.tagName==='TEXTAREA'?el.value:(t==='number'?(parseInt(el.value)||0):el.value);});
-      data.nombre_archivo=filename;
-      closeModal();
-      try{await addNC(data);resolve(true);}catch(e){log('✗ Error: '+e.message,'err');resolve(false);}
-    };
-    document.getElementById('overlay').classList.add('open');
-  });
-}
-
-function closeModal(){document.getElementById('overlay').classList.remove('open');pendingNC=null;editingId=null;}
-
-// ═══════════════════════════════════════════
-// CARGA MANUAL
-// ═══════════════════════════════════════════
-async function addManual(){
-  const g=id=>document.getElementById(id)?.value?.trim()||'';
-  const nc={fecha:g('fm-fecha'),mes:g('fm-mes'),sector:g('fm-sec'),proceso:g('fm-proc'),tipo:g('fm-tipo'),descripcion:g('fm-desc'),producto:g('fm-prod'),causa_raiz:g('fm-causa'),causa_cat:g('fm-ccat'),piezas_afectadas:parseInt(g('fm-pzs'))||0,retrabajo:g('fm-ret'),parada_produccion:g('fm-par'),impacto:g('fm-imp'),recurrente:g('fm-rec'),accion_inmediata:g('fm-ai'),accion_correctiva:g('fm-ac'),accion_preventiva:g('fm-ap'),estado:g('fm-est'),observaciones:g('fm-obs'),nombre_archivo:'Manual'};
-  if(!nc.descripcion&&!nc.sector){alert('Completá al menos la descripción y el sector.');return;}
-  log('Guardando NC manual…','info');
-  try{await addNC(nc);alert('NC agregada correctamente.');}catch(e){alert('Error: '+e.message);}
-}
-
-// ═══════════════════════════════════════════
-// CHARTS
-// ═══════════════════════════════════════════
-Chart.defaults.font.family="'Outfit',sans-serif";Chart.defaults.font.size=11;Chart.defaults.color='#7a8fae';
-Chart.defaults.plugins.legend.labels.padding=16;Chart.defaults.plugins.legend.labels.boxWidth=11;
-const PAL=['#1a56db','#d93025','#2d9e6b','#d97706','#7c3aed','#0891b2','#c2410c','#15803d','#9333ea'];
-let CH={};
-function mkC(id,type,data,opts={}){const ctx=document.getElementById(id);if(!ctx)return;if(CH[id])CH[id].destroy();CH[id]=new Chart(ctx,{type,data,options:{responsive:true,...opts}});}
-const sc={x:{grid:{color:'#f0f4f8'},ticks:{color:'#7a8fae'}},y:{grid:{color:'#f0f4f8'},ticks:{color:'#7a8fae',stepSize:1}}};
-function cntBy(arr,f){const m={};arr.forEach(x=>{const v=(x[f]||'Sin datos').toString().trim();m[v]=(m[v]||0)+1;});return m;}
-function srtE(obj){return Object.entries(obj).sort((a,b)=>b[1]-a[1]);}
-const MES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-
-function initCharts(){
-  const n=NC;
-  const tipos=srtE(cntBy(n,'tipo'));
-  mkC('cTipo','doughnut',{labels:tipos.map(x=>x[0]),datasets:[{data:tipos.map(x=>x[1]),backgroundColor:PAL,borderWidth:3,borderColor:'#fff',hoverOffset:6}]},{plugins:{legend:{position:'bottom'}},cutout:'58%'});
-  document.getElementById('tipo-sub').textContent=tipos.length+' tipos · '+n.length+' total';
-  const caus=srtE(cntBy(n,'causa_cat'));
-  mkC('cCausa','bar',{labels:caus.map(x=>x[0].split('/')[0].trim()),datasets:[{data:caus.map(x=>x[1]),backgroundColor:PAL,borderRadius:6,borderWidth:0}]},{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:sc.x,y:{...sc.y,grid:{display:false}}}});
-  const mC=MES.map(m=>n.filter(x=>x.mes===m).length);
-  mkC('cMes','line',{labels:MES.map(m=>m.slice(0,3)),datasets:[{label:'NC',data:mC,borderColor:'#1a56db',backgroundColor:'rgba(26,86,219,.08)',tension:.4,fill:true,pointRadius:4,pointBackgroundColor:'#1a56db',borderWidth:2}]},{plugins:{legend:{display:false}},scales:sc});
-  const sect=srtE(cntBy(n,'sector')).slice(0,8);
-  mkC('cSect','bar',{labels:sect.map(x=>x[0].length>20?x[0].slice(0,20)+'…':x[0]),datasets:[{data:sect.map(x=>x[1]),backgroundColor:PAL,borderRadius:6,borderWidth:0}]},{indexAxis:'y',plugins:{legend:{display:false}},scales:{x:sc.x,y:{...sc.y,grid:{display:false}}}});
-  const est=cntBy(n,'estado');
-  mkC('cEst','doughnut',{labels:Object.keys(est),datasets:[{data:Object.values(est),backgroundColor:['#fef3c7','#dbeafe','#d1fae5'],borderColor:['#d97706','#1a56db','#2d9e6b'],borderWidth:2,hoverOffset:6}]},{plugins:{legend:{position:'bottom'}},cutout:'58%'});
-  const semMap={};n.forEach(x=>{if(x.semana)semMap[x.semana]=(semMap[x.semana]||0)+1;});
-  const sems=Object.entries(semMap).sort((a,b)=>a[0].localeCompare(b[0])).slice(-12);
-  mkC('cSem','bar',{labels:sems.map(x=>x[0]),datasets:[{label:'NC',data:sems.map(x=>x[1]),backgroundColor:'#1a56db',borderRadius:5,borderWidth:0}]},{plugins:{legend:{display:false}},scales:sc});
-  mkC('cIM','bar',{labels:MES.map(m=>m.slice(0,3)),datasets:[{label:'Alto',data:MES.map(m=>n.filter(x=>x.mes===m&&x.impacto==='Alto').length),backgroundColor:'#d93025',borderRadius:4},{label:'Medio',data:MES.map(m=>n.filter(x=>x.mes===m&&x.impacto==='Medio').length),backgroundColor:'#d97706',borderRadius:4},{label:'Bajo',data:MES.map(m=>n.filter(x=>x.mes===m&&x.impacto==='Bajo').length),backgroundColor:'#2d9e6b',borderRadius:4}]},{plugins:{legend:{position:'bottom'}},scales:{x:{...sc.x,stacked:true},y:{...sc.y,stacked:true}}});
-  const tiU=[...new Set(n.map(x=>x.tipo))].slice(0,5);
-  mkC('cTM','bar',{labels:MES.map(m=>m.slice(0,3)),datasets:tiU.map((t,i)=>({label:t.length>22?t.slice(0,22)+'…':t,data:MES.map(m=>n.filter(x=>x.mes===m&&x.tipo===t).length),backgroundColor:PAL[i],borderRadius:4}))},{plugins:{legend:{position:'bottom'}},scales:{x:{...sc.x,stacked:true},y:{...sc.y,stacked:true}}});
-}
-
-// ═══════════════════════════════════════════
-// KPIs
-// ═══════════════════════════════════════════
-function pct(a,b){return b?Math.round(a/b*100)+'%':'0%';}
-function set(id,val){const el=document.getElementById(id);if(el)el.textContent=val;}
-
-function updateKPIs(){
-  const n=NC,t=n.length;
-  if(!t){['k-total','k-alto','k-ab','k-cerr','k-recur','k-par','k-cierre','k-plan','k-rp','k-pzs'].forEach(id=>set(id,'0'));return;}
-  const alto=n.filter(x=>x.impacto==='Alto').length;
-  const ab=n.filter(x=>x.estado!=='Cerrada').length;
-  const cerr=n.filter(x=>x.estado==='Cerrada').length;
-  const recur=n.filter(x=>x.recurrente==='S').length;
-  const par=n.filter(x=>x.parada_produccion==='S').length;
-  const plan=n.filter(x=>x.tipo==='Error de planificación').length;
-  const pzs=n.reduce((a,x)=>a+(parseInt(x.piezas_afectadas)||0),0);
-  set('k-total',t);set('k-alto',alto);set('k-ab',ab);set('k-cerr',cerr);
-  set('k-recur',recur);set('k-par',par);set('k-cierre',pct(cerr,t));
-  set('k-plan',pct(plan,t));set('k-rp',pct(recur,t));set('k-pzs',pzs);
-  set('sb-total',t);set('sb-alto',alto);set('sb-ab',ab);
-  document.getElementById('nav-total').textContent=t;
-  document.getElementById('dash-sub').textContent='Actualizado: '+new Date().toLocaleDateString('es-AR',{day:'2-digit',month:'long',year:'numeric'})+' · '+t+' NC';
-}
-
-// ═══════════════════════════════════════════
-// ANÁLISIS
-// ═══════════════════════════════════════════
-function refreshAnalisis(){
-  const n=NC,t=n.length;if(!t)return;
-  const alto=n.filter(x=>x.impacto==='Alto').length;
-  const recur=n.filter(x=>x.recurrente==='S').length;
-  const cerr=n.filter(x=>x.estado==='Cerrada').length;
-  const plan=n.filter(x=>x.tipo==='Error de planificación').length;
-  const pzs=n.reduce((a,x)=>a+(parseInt(x.piezas_afectadas)||0),0);
-  const par=n.filter(x=>x.parada_produccion==='S').length;
-  const ret=n.filter(x=>x.retrabajo==='S').length;
-
-  const ins=[];
-  if(plan/t>.3)ins.push({cls:'alert',title:`⚠ Planificación dominante: ${Math.round(plan/t*100)}% de las NC`,body:`${plan} de ${t} NC tienen origen en planificación. Implementar checklist de validación previo a cada orden podría eliminar casi la mitad de los desvíos actuales.`});
-  if(recur/t>.1)ins.push({cls:'warn',title:`🔁 Alta recurrencia: ${Math.round(recur/t*100)}%`,body:'Las acciones correctivas no están atacando la causa raíz o no se implementan en tiempo. Revisar NC recurrentes y escalar a acciones estructurales.'});
-  if(alto/t>.25)ins.push({cls:'alert',title:`🔴 ${Math.round(alto/t*100)}% de NC con impacto Alto`,body:'Alta proporción de NC críticas. Priorizar el cierre de estas NC antes de que generen nuevas paradas.'});
-  if(cerr/t<.4)ins.push({cls:'warn',title:`📌 Tasa de cierre baja: ${Math.round(cerr/t*100)}%`,body:'La mayoría de NC están pendientes. Establecer fechas límite y responsables para cada acción correctiva.'});
-  if(par>0)ins.push({cls:'alert',title:`⛔ ${par} NC generaron paradas (${Math.round(par/t*100)}%)`,body:'Implementar protocolos de respuesta rápida para los tipos que más frecuentemente generan paradas de producción.'});
-  if(pzs>0)ins.push({cls:'warn',title:`📦 ${pzs} piezas acumuladas fuera de especificación`,body:'Verificar si el material fue recuperado o descartado. Cada pieza fuera de spec es pérdida directa.'});
-  if(!ins.length)ins.push({cls:'good',title:'✓ Sin hallazgos críticos',body:'Los indicadores están dentro de rangos aceptables. Mantener el monitoreo semanal.'});
-  document.getElementById('insightsBox').innerHTML=ins.map(i=>`<div class="insight ${i.cls}"><div class="insight-title">${i.title}</div><div class="insight-body">${i.body}</div></div>`).join('');
-
-  function bPareto(cid,data,color){
-    const tot=data.reduce((a,x)=>a+x[1],0);const mx=data[0]?.[1]||1;
-    document.getElementById(cid).innerHTML=data.map(([l,c])=>`<div class="pareto-row"><div class="pareto-lbl" title="${l}">${l.length>24?l.slice(0,24)+'…':l}</div><div class="pareto-track"><div class="pareto-fill" style="width:${Math.round(c/mx*100)}%;background:${color||'var(--blue)'}">${c>1?c:''}</div></div><div class="pareto-n">${c}</div><div class="pareto-pct">${Math.round(c/tot*100)}%</div></div>`).join('');
+  
+  // Combinar datos existentes con nuevos
+  var updated = {};
+  for (var j = 0; j < HEADERS.length; j++) {
+    var key = HEADERS[j];
+    updated[key] = (newData[key] !== undefined) ? newData[key] : (record[key] || "");
   }
-  bPareto('pCausas',srtE(cntBy(n,'causa_cat')));
-  bPareto('pSect',srtE(cntBy(n,'sector')).slice(0,8),'#d93025');
-  bPareto('pTipo',srtE(cntBy(n,'tipo')));
-  bPareto('pProc',srtE(cntBy(n,'proceso')).slice(0,8),'#7c3aed');
-
-  function kRow(ind,val,ref,est){return`<tr><td>${ind}</td><td><strong>${val}</strong></td><td style="font-family:var(--m);font-size:11px;color:var(--text3)">${ref}</td><td>${est}</td></tr>`;}
-  document.getElementById('kv').innerHTML=[
-    kRow('Total NC',t,'—','—'),kRow('NC impacto Alto',alto,pct(alto,t),alto/t>.35?'🔴':'🟢'),
-    kRow('NC impacto Medio',n.filter(x=>x.impacto==='Medio').length,'—','—'),
-    kRow('NC con parada',par,pct(par,t),par/t>.3?'🔴':'🟡'),kRow('NC con retrabajo',ret,pct(ret,t),'—'),
-  ].join('');
-  document.getElementById('ki').innerHTML=[
-    kRow('Piezas fuera de spec',pzs,'uds',pzs>0?'🔴 Revisar':'🟢'),kRow('NC con retrabajo',ret,pct(ret,t),'—'),
-    kRow('NC con parada',par,pct(par,t),'—'),kRow('Sectores afectados',Object.keys(cntBy(n,'sector')).length,'sectores','—'),
-    kRow('Productos/Equipos afect.',Object.keys(cntBy(n,'producto')).length,'items','—'),
-  ].join('');
-  document.getElementById('kg').innerHTML=[
-    kRow('NC cerradas',cerr,pct(cerr,t),cerr/t>.6?'🟢':'🔴'),
-    kRow('NC abiertas',n.filter(x=>x.estado!=='Cerrada').length,pct(n.filter(x=>x.estado!=='Cerrada').length,t),'—'),
-    kRow('NC en curso',n.filter(x=>x.estado==='En curso').length,pct(n.filter(x=>x.estado==='En curso').length,t),'—'),
-    kRow('NC pendientes',n.filter(x=>x.estado==='Pendiente').length,pct(n.filter(x=>x.estado==='Pendiente').length,t),n.filter(x=>x.estado==='Pendiente').length/t>.5?'🔴':'🟡'),
-    kRow('Tasa de cierre',pct(cerr,t),'meta: >60%',cerr/t>.6?'🟢':'🔴'),
-  ].join('');
-  document.getElementById('kc').innerHTML=[
-    kRow('NC por error planificación',plan,pct(plan,t),plan/t>.3?'🔴 Foco principal':'🟡'),
-    kRow('NC recurrentes',recur,pct(recur,t),recur/t>.1?'🔴':'🟢'),
-    kRow('NC por falla de equipo',n.filter(x=>x.tipo==='Falla de equipo').length,pct(n.filter(x=>x.tipo==='Falla de equipo').length,t),'—'),
-    kRow('NC por faltante material',n.filter(x=>x.tipo==='Faltante de material').length,pct(n.filter(x=>x.tipo==='Faltante de material').length,t),'—'),
-    kRow('Categorías 5M involucradas',Object.keys(cntBy(n,'causa_cat')).length,'de 5','—'),
-  ].join('');
-  document.getElementById('ke').innerHTML=[
-    kRow('NC sector Corte',n.filter(x=>x.sector?.includes('Corte')).length,pct(n.filter(x=>x.sector?.includes('Corte')).length,t),'—'),
-    kRow('NC sector Logística',n.filter(x=>x.sector?.toLowerCase().includes('logíst')||x.sector?.toLowerCase().includes('logist')).length,pct(n.filter(x=>x.sector?.toLowerCase().includes('logíst')||x.sector?.toLowerCase().includes('logist')).length,t),'—'),
-    kRow('NC sector Planificación',n.filter(x=>x.sector?.toLowerCase().includes('planif')).length,pct(n.filter(x=>x.sector?.toLowerCase().includes('planif')).length,t),'—'),
-    kRow('NC sector Producción',n.filter(x=>x.sector?.toLowerCase().includes('producc')).length,pct(n.filter(x=>x.sector?.toLowerCase().includes('producc')).length,t),'—'),
-    kRow('Meses con actividad',Object.keys(cntBy(n,'mes')).filter(m=>m!=='Sin datos').length,'de 12','—'),
-  ].join('');
-}
-
-// ═══════════════════════════════════════════
-// TABLA INFORMES
-// ═══════════════════════════════════════════
-function populateFilters(){
-  const fill=(id,opts,label)=>{const sel=document.getElementById(id);const cur=sel.value;sel.innerHTML=`<option value="">${label}</option>`+opts.map(o=>`<option value="${o}">${o}</option>`).join('');sel.value=cur;};
-  fill('fSec',[...new Set(NC.map(x=>x.sector).filter(Boolean))].sort(),'Todos los sectores');
-  fill('fTip',[...new Set(NC.map(x=>x.tipo).filter(Boolean))].sort(),'Todos los tipos');
-  fill('fImp',[...new Set(NC.map(x=>x.impacto).filter(Boolean))],'Todos los impactos');
-  fill('fEst',[...new Set(NC.map(x=>x.estado).filter(Boolean))],'Todos los estados');
-  fill('fMes',MES.filter(m=>NC.some(x=>x.mes===m)),'Todos los meses');
-}
-
-function renderTable(){
-  const q=(document.getElementById('fQ')?.value||'').toLowerCase();
-  const sec=document.getElementById('fSec')?.value||'';
-  const tip=document.getElementById('fTip')?.value||'';
-  const imp=document.getElementById('fImp')?.value||'';
-  const est=document.getElementById('fEst')?.value||'';
-  const mes=document.getElementById('fMes')?.value||'';
-  let data=NC.filter(x=>
-    (!q||[x.id,x.descripcion,x.sector,x.tipo,x.producto,x.mes].some(v=>String(v||'').toLowerCase().includes(q)))&&
-    (!sec||x.sector===sec)&&(!tip||x.tipo===tip)&&(!imp||x.impacto===imp)&&(!est||x.estado===est)&&(!mes||x.mes===mes)
-  );
-  data=[...data].sort((a,b)=>{const va=a[sortF],vb=b[sortF];return(va<vb?-1:va>vb?1:0)*sortD;});
-  document.getElementById('fCnt').textContent=data.length+' resultados';
-  if(!data.length){document.getElementById('tableWrap').innerHTML='<div class="tbl-empty">Sin resultados.</div>';return;}
-  function bI(v){if(v==='Alto')return`<span class="badge b-alto">Alto</span>`;if(v==='Medio')return`<span class="badge b-medio">Medio</span>`;if(v==='Bajo')return`<span class="badge b-bajo">Bajo</span>`;return`<span class="badge b-otro">${v||'—'}</span>`;}
-  function bE(v){if(v==='Cerrada')return`<span class="badge b-cerr">Cerrada</span>`;if(v==='En curso')return`<span class="badge b-curso">En curso</span>`;return`<span class="badge b-pend">Pendiente</span>`;}
-  function bS(v){return v==='S'?`<span class="badge b-si">Sí</span>`:`<span class="badge b-no">No</span>`;}
-  const ths=[['id','ID'],['fecha','Fecha'],['sector','Sector'],['tipo','Tipo NC'],['descripcion','Descripción'],['impacto','Impacto'],['retrabajo','Retrab.'],['parada_produccion','Parada'],['recurrente','Recur.'],['piezas_afectadas','Piezas'],['estado','Estado'],['','Acciones']].map(([f,l])=>f?`<th class="${f===sortF?(sortD===1?'sort-asc':'sort-desc'):''}" onclick="sortT('${f}')">${l}</th>`:`<th>${l}</th>`).join('');
-  const rows=data.map(r=>`<tr><td class="td-mono">#${r.id}</td><td class="td-mono" style="white-space:nowrap">${r.fecha||'—'}</td><td style="font-size:12px;color:var(--text2);white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis">${r.sector||'—'}</td><td style="white-space:nowrap;font-size:12px">${r.tipo||'—'}</td><td class="td-desc" title="${r.descripcion||''}">${r.descripcion||'—'}</td><td>${bI(r.impacto)}</td><td>${bS(r.retrabajo)}</td><td>${bS(r.parada_produccion)}</td><td>${bS(r.recurrente)}</td><td class="td-mono" style="text-align:right;color:${(parseInt(r.piezas_afectadas)||0)>0?'var(--red)':'var(--text3)'}">${r.piezas_afectadas||0}</td><td>${bE(r.estado)}</td><td style="white-space:nowrap"><button class="btn btn-g btn-sm" onclick="openEditModal(${r.id})">✏</button> <button class="btn btn-d btn-sm" onclick="deleteNC(${r.id})">🗑</button></td></tr>`).join('');
-  document.getElementById('tableWrap').innerHTML=`<table><thead><tr>${ths}</tr></thead><tbody>${rows}</tbody></table>`;
-}
-
-function sortT(f){if(sortF===f)sortD*=-1;else{sortF=f;sortD=1;}renderTable();}
-
-// ═══════════════════════════════════════════
-// CONFIG
-// ═══════════════════════════════════════════
-function saveConfig(){
-  const url=document.getElementById('cfgUrl').value.trim();
-  if(!url){alert('Ingresá la URL.');return;}
-  CFG.url=url;localStorage.setItem(CK+'_url',url);
-  document.getElementById('cfgStatus').innerHTML='<span style="color:var(--green)">✓ URL guardada. Probando…</span>';
-  updateCfgInfo();testConn();
-}
-
-async function testConn(){
-  if(!CFG.url){document.getElementById('cfgStatus').innerHTML='<span style="color:var(--red)">✗ Sin URL configurada</span>';return;}
-  try{
-    const d=await apiGet('ping');
-    document.getElementById('cfgStatus').innerHTML=`<span style="color:var(--green)">✓ Conexión exitosa · ${d.records} registros · ${new Date(d.time).toLocaleString('es-AR')}</span>`;
-    setConn('on','Conectado');CFG.connected=true;updateBanners();await syncData();
-  }catch(e){
-    document.getElementById('cfgStatus').innerHTML=`<span style="color:var(--red)">✗ Error: ${e.message}</span>`;
-    setConn('off','Sin conexión');
+  
+  var row = [];
+  for (var k = 0; k < HEADERS.length; k++) {
+    row.push(updated[HEADERS[k]] || "");
   }
+  
+  sheet.getRange(record._row, 1, 1, HEADERS.length).setValues([row]);
+  
+  // Recolorear
+  var impacto = String(updated.impacto || "").toLowerCase();
+  var bgColor = "#ffffff";
+  if (impacto === "alto") bgColor = "#fff0f0";
+  else if (impacto === "medio") bgColor = "#fffbe6";
+  else if (impacto === "bajo") bgColor = "#f0faf5";
+  sheet.getRange(record._row, 1, 1, HEADERS.length).setBackground(bgColor);
+  
+  return { status: "ok", data: { message: "NC actualizada correctamente" } };
 }
 
-function updateCfgInfo(){
-  const info=CFG.url?`✓ Google Sheets: <code style="font-family:var(--m);background:var(--bg);padding:2px 6px;border-radius:4px">${CFG.url.slice(0,55)}…</code><br>Estado: <strong>${CFG.connected?'Conectado ✓':'Sin verificar'}</strong>`:'✗ Sin configurar. Seguí los pasos de arriba.';
-  document.getElementById('cfgInfo').innerHTML=info;
-  if(CFG.url)document.getElementById('cfgUrl').value=CFG.url;
+// ─────────────────────────────────────────────
+// ELIMINAR un registro
+// ─────────────────────────────────────────────
+function deleteRecord(id) {
+  var sheet = getSheet();
+  var allRecords = getAllRecords();
+  
+  var record = null;
+  for (var i = 0; i < allRecords.length; i++) {
+    if (parseInt(allRecords[i].id) === parseInt(id)) {
+      record = allRecords[i];
+      break;
+    }
+  }
+  
+  if (!record) {
+    return { status: "error", data: { error: "Registro no encontrado" } };
+  }
+  
+  sheet.deleteRow(record._row);
+  return { status: "ok", data: { message: "NC eliminada correctamente" } };
 }
 
-function updateBanners(){
-  document.getElementById('storeBanner').style.display=CFG.connected?'flex':'none';
-  document.getElementById('localBanner').style.display=CFG.connected?'none':'flex';
+// ─────────────────────────────────────────────
+// INSERTAR MÚLTIPLES registros
+// ─────────────────────────────────────────────
+function bulkInsert(records) {
+  var count = 0;
+  
+  for (var i = 0; i < records.length; i++) {
+    var result = insertRecord(records[i]);
+    if (result.status === "ok") count++;
+  }
+  
+  return { status: "ok", data: { message: count + " registros importados correctamente" } };
 }
 
-async function importHist(){
-  if(!CFG.url){alert('Primero configurá la URL de Google Sheets.');return;}
-  if(!confirm('¿Importar las 15 NC históricas (N°2 a N°16)?'))return;
-  log('Importando NC históricas…','info');
-  try{const r=await apiPost({action:'bulkInsert',data:HIST});log('✓ '+r.message,'ok');await syncData();}
-  catch(e){log('✗ Error: '+e.message,'err');}
+// ─────────────────────────────────────────────
+// FUNCIÓN DE PRUEBA - podés ejecutarla manualmente
+// para verificar que todo funciona antes de desplegar
+// ─────────────────────────────────────────────
+function testScript() {
+  var sheet = getSheet();
+  Logger.log("Hoja encontrada: " + sheet.getName());
+  Logger.log("Registros actuales: " + getAllRecords().length);
+  Logger.log("Todo OK - podés desplegar como Web App");
 }
-
-// ═══════════════════════════════════════════
-// EXPORT CSV
-// ═══════════════════════════════════════════
-function exportCSV(){
-  const h=['ID','Fecha','Mes','Año','Semana','Sector','Proceso','Tipo NC','Descripción','Producto','Causa Raíz','Cat. Causa','Impacto','Retrabajo','Parada','Recurrente','Piezas','Acción Inm.','Acción Corr.','Acción Prev.','Estado','Observaciones'];
-  const k=['id','fecha','mes','año','semana','sector','proceso','tipo','descripcion','producto','causa_raiz','causa_cat','impacto','retrabajo','parada_produccion','recurrente','piezas_afectadas','accion_inmediata','accion_correctiva','accion_preventiva','estado','observaciones'];
-  const rows=NC.map(r=>k.map(key=>`"${String(r[key]||'').replace(/"/g,'""')}"`).join(','));
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+[h.join(','),...rows].join('\n')],{type:'text/csv;charset=utf-8;'}));a.download='NC_CentroEstant_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
-}
-
-// ═══════════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════════
-function setConn(s,t){const d=document.getElementById('cdot');const tx=document.getElementById('ctxt');if(d)d.className='cdot'+(s==='on'?'':s==='off'?' off':' load');if(tx)tx.textContent=t;CFG.connected=(s==='on');}
-function log(msg,cls='dim'){const lb=document.getElementById('logBox');if(!lb)return;const d=document.createElement('div');d.className='ll '+cls;d.textContent='['+new Date().toLocaleTimeString('es-AR')+'] '+msg;lb.appendChild(d);lb.scrollTop=lb.scrollHeight;}
-
-function refreshAll(){
-  updateKPIs();initCharts();populateFilters();renderTable();refreshAnalisis();
-  document.getElementById('topDate').textContent=new Date().toLocaleDateString('es-AR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
-}
-
-// ═══════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════
-window.addEventListener('load',async()=>{
-  document.getElementById('topDate').textContent=new Date().toLocaleDateString('es-AR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
-  updateCfgInfo();updateBanners();
-  if(CFG.url){await syncData();}
-  else{setConn('off','Sin configurar');log('Sin URL de Google Sheets. Andá a ⚙ Configuración.','err');refreshAll();}
-  setInterval(()=>{if(CFG.url)syncData();},5*60*1000);
-});
-</script>
-</body>
-</html>
